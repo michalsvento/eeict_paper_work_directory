@@ -126,9 +126,6 @@ def relative_sol_change(actual_sol, prev_sol):
     l2_prev = torch.linalg.norm(prev_sol,2)
     rel_change = l2_actual/l2_prev
     return rel_change
-    
-
- 
 
 
 # %% Signal loading  
@@ -152,23 +149,28 @@ signal_t[gap[0]:gap[1]] = torch.tensor([0])
 #c = tfa.dgt(signal_t)
 
 x = signal_t.clone()
+x_prev = x.clone()
 
 normx = np.zeros([dra_par["n_ite"],1])
+relative_change = np.zeros([dra_par["n_ite"]-1,1])
 iterations = np.arange(1,dra_par["n_ite"]+1)
 
 for i in tqdm(range(dra_par["n_ite"])):
     xi = projection_time_domain(x, ref, gap)
-    x =x + dra_par["lambda"]*((1/dra_par["gamma"])*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi))  #Denoiser -> soft_thresh
-    normx[i] = l1norm(x)
+    if i>0:
+        relative_change[i-1]=relative_sol_change(xi, x_prev)
+    x_prev = xi.clone()
+    x =x + dra_par["lambda"]*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi)  #Denoiser -> soft_thresh
+    normx[i] = l1norm(tfa.dgt(x))
  
  
 #final_c = denoise.forward(c)
 #reconstructed = tfa.idgt(final_c)
 print(normx[i])
 
-final_x = x + dra_par["lambda"]*((1/dra_par["gamma"])*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi))
+final_x = projection_time_domain(x,ref,gap)
 
-recon = final_x
+
 #scaled = np.int16(recon / np.max(np.abs(recon)) * 32767) + 32767/2
 #wavfile.write('recon.wav', Fs,scaled)
     
@@ -176,7 +178,7 @@ recon = final_x
 
 
 
-sf.write('output_audio.wav',recon,Fs)
+sf.write('output_audio.wav',final_x,Fs)
 
 
 # %% Metrics
@@ -206,8 +208,10 @@ ax1.set_ylabel('l1 norm')
 
 fig2, [ax1,ax2] = plt.subplots(1, 2)
 
-ax1.plot(recon[Fs-100:Fs+4000])
+ax1.plot(final_x[Fs-100:Fs+4000])
 ax2.plot(signal_norm[Fs-100:Fs+4000])
 
 
+fig3, ax1 = plt.subplots(1, 1)
+ax1.plot(iterations[:-1],relative_change)
 

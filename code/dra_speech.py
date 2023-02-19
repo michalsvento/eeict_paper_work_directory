@@ -148,12 +148,17 @@ signal_t[gap[0]:gap[1]] = torch.tensor([0])
 
 
 c = tfa.dgt(signal_t)
+c_prev = c.clone()
 
 normc = np.zeros([dra_par["n_ite"],1])
 iterations = np.arange(1,dra_par["n_ite"]+1)
+relative_change = np.zeros([dra_par["n_ite"]-1,1])
 
 for i in tqdm(range(dra_par["n_ite"])):
     ci = projection_from_spectrum(c, ref, gap)
+    if i>0:
+        relative_change[i-1]=relative_sol_change(ci.flatten(), c_prev.flatten())
+    c_prev = ci.clone()
     c = c+ dra_par["lambda"]*(soft_thresh(2*ci - c, dra_par["gamma"])-ci)  #Denoiser -> soft_thresh
     normc[i] = l1norm(c.squeeze(0))
  
@@ -219,5 +224,7 @@ fig2, [ax1,ax2] = plt.subplots(1, 2)
 ax1.plot(recon[Fs-100:Fs+4000])
 ax2.plot(signal_norm[Fs-100:Fs+4000])
 
+fig3, ax1 = plt.subplots(1,1)
 
+ax1.plot(iterations[:-1],relative_change)
 

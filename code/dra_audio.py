@@ -12,8 +12,6 @@ import torch.nn as nn
 from tqdm import tqdm
 from scipy.io import wavfile
 import soundfile as sf
-from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
-from torchmetrics.audio.pesq import PerceptualEvaluationSpeechQuality
 
 # %% TFAnalysis setup
 
@@ -121,8 +119,8 @@ def SNR(reconstructed, reference):
     return snr_ratio
 
 def relative_sol_change(actual_sol, prev_sol):
-    l2_actual = torch.linalg.norm(actual_sol-prev_sol,2)
-    l2_prev = torch.linalg.norm(prev_sol,2)
+    l2_actual = torch.linalg.norm(actual_sol-prev_sol,ord = 2)
+    l2_prev = torch.linalg.norm(prev_sol,ord = 2)
     rel_change = l2_actual/l2_prev
     return rel_change
 
@@ -147,12 +145,17 @@ signal_t[gap[0]:gap[1]] = torch.tensor([0])
 
 
 c = tfa.dgt(signal_t)
+c_prev = c.clone()
 
 normc = np.zeros([dra_par["n_ite"],1])
 iterations = np.arange(1,dra_par["n_ite"]+1)
+relative_change = np.zeros([dra_par["n_ite"]-1,1])
 
 for i in tqdm(range(dra_par["n_ite"])):
     ci = projection_from_spectrum(c, ref, gap)
+    if i>0:
+        relative_change[i-1]=relative_sol_change(ci, c_prev)
+    c_prev = ci.clone()
     c = c+ dra_par["lambda"]*(soft_thresh(2*ci - c, dra_par["gamma"])-ci)  #Denoiser -> soft_thresh
     normc[i] = l1norm(c.squeeze(0))
  
