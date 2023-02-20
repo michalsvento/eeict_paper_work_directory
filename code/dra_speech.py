@@ -44,10 +44,10 @@ class Transform_audio():
         self.hann = torch.hann_window(self.w)
         
     def dgt(self,signal):
-        spectro = torch.stft(signal, self.n_fft,self.a,self.w,self.hann,return_complex=True)
+        spectro = torch.stft(signal, self.n_fft,self.a,self.w,self.hann,return_complex=True,normalized=True)
         return spectro
     def idgt(self,spectro):
-        signal = torch.istft(spectro, self.n_fft,self.a,self.w,torch.hann_window(self.w))
+        signal = torch.istft(spectro, self.n_fft,self.a,self.w,self.hann,normalized=True)
         return signal
     
     
@@ -64,20 +64,18 @@ def soft_thresh(signal,gamma):
     output = torch.sgn(signal)*torch.maximum((torch.abs(signal))-gamma,torch.tensor([0]))
     return output
 
-def projection_from_spectrum(coeff,reference,gap):
+def projection_time_domain(signal, reference, mask):
+    signal_proj = signal.clone()
+    signal_proj[mask] = reference[mask]
+    return signal_proj
+    
+
+def projection_from_spectrum(coeff,reference,mask):
     synthetized = tfa.idgt(coeff)  # Dz
-    projn = synthetized.clone()
-    projn[0:gap[0]]=reference[0:gap[0]]   # proj(Dz)
-    projn[gap[1]:]=reference[gap[1]:]
+    projn = projection_time_domain(synthetized, reference, mask)
     subtract = synthetized-projn #  Dz-proj(Dz)
     output = coeff - tfa.dgt(subtract)
     return output
-
-def projection_time_domain(signal, reference, gap):
-    signal_proj = signal.clone()
-    signal_proj[0:gap[0]]=reference[0:gap[0]]     # proj(Dz)
-    signal_proj[gap[1]:]=reference[gap[1]:]
-    return signal_proj
     
 dra_par ={
     "n_ite":1000,
@@ -129,23 +127,24 @@ def relative_sol_change(actual_sol, prev_sol):
 # %% DR algorithm 
 
 
-# TODO: Signal loading  
-# Test tensor
-
-amplitude = np.iinfo(np.int16).max
+# Signal loading  
 
 Fs, orig_signal = wavfile.read("male.wav")
 orig_signal = orig_signal[0:Fs*2]
 pad_size = dgt_params['n_fft'] - len(orig_signal) % dgt_params['n_fft']
 signal = np.concatenate((orig_signal,np.zeros([pad_size]))).astype(np.float64)
-gap = np.array([Fs,Fs+800])  # pozicia diery
+
+# Signal normalization and reference clone
+amplitude = np.iinfo(np.int16).max
 signal_norm = signal / amplitude
-signal_t = torch.tensor(signal_norm) #.unsqueeze(0)
+signal_t = torch.tensor(signal_norm)
 ref = signal_t.clone()
-signal_t[gap[0]:gap[1]] = torch.tensor([0])
 
-
-
+#gap = np.array([Fs,Fs+800])  # pozicia diery
+threshold = 0.4  # i.e. 60% reliables
+mu, sigma = 0.5, 0.5 # mean and standard deviation
+mask = np.random.default_rng(seed=42).normal(mu,sigma,len(signal))> threshold
+signal_t[~mask] = torch.tensor([0])
 
 c = tfa.dgt(signal_t)
 c_prev = c.clone()
@@ -155,7 +154,7 @@ iterations = np.arange(1,dra_par["n_ite"]+1)
 relative_change = np.zeros([dra_par["n_ite"]-1,1])
 
 for i in tqdm(range(dra_par["n_ite"])):
-    ci = projection_from_spectrum(c, ref, gap)
+    ci = projection_from_spectrum(c, ref, mask)
     if i>0:
         relative_change[i-1]=relative_sol_change(ci.flatten(), c_prev.flatten())
     c_prev = ci.clone()
@@ -167,19 +166,18 @@ for i in tqdm(range(dra_par["n_ite"])):
 #reconstructed = tfa.idgt(final_c)
 
 
-final_c = projection_from_spectrum(c, ref, gap)
+final_c = projection_from_spectrum(c, ref, mask)
 reconstructed = tfa.idgt(final_c)
 
 recon = reconstructed.numpy()
-#scaled = np.int16(recon / np.max(np.abs(recon)) * 32767) + 32767/2
-#wavfile.write('recon.wav', Fs,scaled)
+
     
 # %% Save audio
 
 
 
 sf.write('output.wav',recon,Fs)
-
+sf.write('input_damaged.wav',signal_t.numpy(),Fs)
 
 # %% Metrics
 
@@ -187,11 +185,6 @@ sf.write('output.wav',recon,Fs)
 stoi = ShortTimeObjectiveIntelligibility(Fs, False)
 audio_stoi = stoi(reconstructed,ref)
 print("STOI - full signal: ",audio_stoi.item())
-
-# keď dopadne rekonštrukcia zle podobnosť je minimálna, STOI hlási error
-# ze sa signaly vobec nepodobaju
-# gap_stoi = stoi(reconstructed[gap[0]:gap[1]],ref[gap[0]:gap[1]])
-# print("STOI - only gap: ",gap_stoi.item())
 
 # Perceptual Evaluation of Speech Quality (PESQ)
 pesq = PerceptualEvaluationSpeechQuality(Fs, 'nb')
@@ -203,7 +196,7 @@ snr_val = SNR(reconstructed,ref)
 print("SNR (dB) - full length: ",snr_val.item())
 
 # SNR - in gap
-snr_val_gap = SNR(reconstructed[gap[0]:gap[1]],ref[gap[0]:gap[1]])
+snr_val_gap = SNR(reconstructed[~mask],ref[~mask])
 print("SNR (dB) - only gap: ",snr_val_gap.item())
 
 
