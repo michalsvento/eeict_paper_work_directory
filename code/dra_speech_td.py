@@ -81,8 +81,8 @@ def projection_time_domain(signal, reference, gap):
     
 dra_par ={
     "n_ite":1000,
-    "lambda":0.1,
-    "gamma":10,
+    "lambda":1,
+    "gamma":0.1,
     "alfa":0.5
 }
 
@@ -208,10 +208,12 @@ ax1.set_ylabel('l1 norm')
 
 fig2, [ax1,ax2] = plt.subplots(1, 2)
 
-ax1.plot(final_x[Fs-100:Fs+4000])
-ax2.plot(signal_norm[Fs-100:Fs+4000])
+# ax1.plot(final_x[Fs-100:Fs+4000])
+# ax2.plot(signal_norm[Fs-100:Fs+4000])
 
+ax1.plot(final_x)
+ax2.plot(signal_norm)
 
 fig3, ax1 = plt.subplots(1, 1)
 ax1.plot(iterations[:-1],relative_change)
-
+ax1.set_title('l2norm relative change');
