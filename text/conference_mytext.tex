@@ -11,7 +11,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Audio restoration using plug-and-play appro\\
+\title{Audio restoration using plug-and-play approach\\
 {}
 \thanks{Identify applicable funding agency here. If none, delete this.}
 }
@@ -22,17 +22,12 @@
 Brno, Czech Republic \\
 212584@vut.cz}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
+\IEEEauthorblockN{Ondřej Mokrý}
+\IEEEauthorblockA{\textit{Signal Processing Laboratory} \\
+\textit{ Brno University of Technology}\\
+Brno, Czech Republic \\
+xmokry12@vut.cz}
+
 }
 
 \maketitle
@@ -44,15 +39,42 @@ or Math in Paper Title or Abstract.
 \end{abstract}
 
 \begin{IEEEkeywords}
-component, formatting, style, styling, insert
+speech enhancement, deep learning, Douglas-Rachford algorithm
 \end{IEEEkeywords}
 
 \section{Introduction}
-This section contains short intro to problem and mention recent and state-of-the art approach.
+
+Audio enhancement tasks are mostly facing problems like missing or damaged samples, noise or clipping.
+If we consider speech signal, we should not avoid the intelligibility problems.
+Each problem has developed its own way of enhancing signal.
+Nowadays is most proper way to differ algorithms to two categories:
+conventional (autoregressive models, sparsity-based) and solutions using deep learning.
+
+In conventional methods dominates Jansenn and Ec
+
+
+Deep learning algorithms have also made their own progress in this area.
+The most efficient neural network models are autoencoders,
+recurrent neural networks (RNNs),
+Generative Adversial Network (GAN).
+Speech Enhancement GAN (SEGAN) is first sufficient\cite{Pascual2017}
+
+In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
+The idea of hybrid model,
+combining conventional approach (convex minimization) with deep learning,
+has shown succesful.
+Our motivation is to transform this model to audio problems with minor differences.
+We replace Alternating Direction Multiplier Method (ADMM) with Douglas-Rachford algorithm (DR~algorithm).
+Denoiser will be chosen from state-of-the-art audio denoisers. 
+ 
 
 \section{Prerequsities}
 
+In this section we introduce our task in mathematical view and 
 \subsection{Task formulation}
+
+We consider column vector $ s \in \mathbb{R}^{L} $ as our observed single-channel signal of length $ L $.
+ 
 
 \subsection{Douglas-Rachford algorithm}
 
@@ -78,18 +100,18 @@ an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B.
 G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
 acknowledgments in the unnumbered footnote on the first page.
 
-\section*{References}
+\bibliographystyle{IEEEtran}
+\bibliography{bib_eeict2023}
 
-
-\begin{thebibliography}{00}
-\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
-\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
-\end{thebibliography}
+%\begin{thebibliography}{00}
+%\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
+%\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
+%\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
+%\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
+%\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
+%\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
+%\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+%\end{thebibliography}
 \vspace{12pt}
 \color{red}
 IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
