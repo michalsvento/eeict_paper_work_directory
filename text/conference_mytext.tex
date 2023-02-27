@@ -44,23 +44,27 @@ speech enhancement, deep learning, Douglas-Rachford algorithm
 
 \section{Introduction}
 
-Audio enhancement tasks are mostly facing problems like missing or damaged samples, noise or clipping.
+Audio enhancement tasks mostly face problems like missing or damaged samples, noise, or clipping.
 If we consider speech signal, we should not avoid the intelligibility problems.
-Each problem has developed its own way of enhancing signal.
-Nowadays is most proper way to differ algorithms to two categories:
+Each problem has developed its own way of enhancing the signal.
+Nowadays, the bestway to differentiate algorithms is with two categories:
 conventional (autoregressive models, sparsity-based) and solutions using deep learning.
 
-In conventional methods dominates Jansenn and Ec
+In conventional methods dominates Janssen \cite{Janssen1986} and Etter~\cite{Etter1996}.
+These approaches are based on autoregressive signal modeling \cite{Mokry2020}.
+Sparse signal representation has changed efficiency of restoration, mainly because increase of computing power.
+The information hidden in frequency representation (using proper time-frequency analysis) is sparse, i.e. we do not need each spectral coefficient to repair the signal with improved subjective results.
+The most advanced works using sparsity are \cite{Adler2012,Kitic2015,Zaviska2019, Mokry2019}.
 
 
 Deep learning algorithms have also made their own progress in this area.
 The most efficient neural network models are autoencoders,
-recurrent neural networks (RNNs),
+recurrent neural networks (RNNs) and
 Generative Adversial Network (GAN).
-Speech Enhancement GAN (SEGAN) is first sufficient\cite{Pascual2017}
+Current state-of-the-art deep learned algorithms are Speech Enhancement GAN (SEGAN) \cite{Pascual2017}, NSNet \cite{Xia2020}, FullSubNet \cite{Hao2021}. 
 
 In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
-The idea of hybrid model,
+The idea of a hybrid model,
 combining conventional approach (convex minimization) with deep learning,
 has shown succesful.
 Our motivation is to transform this model to audio problems with minor differences.
@@ -70,11 +74,13 @@ Denoiser will be chosen from state-of-the-art audio denoisers.
 
 \section{Prerequsities}
 
-In this section we introduce our task in mathematical view and 
+In this section we introduce our task in mathematical view and compose minimazation task.
+
 \subsection{Task formulation}
 
 We consider column vector $ s \in \mathbb{R}^{L} $ as our observed single-channel signal of length $ L $.
- 
+
+
 
 \subsection{Douglas-Rachford algorithm}
 
