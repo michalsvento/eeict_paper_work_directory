@@ -14,7 +14,13 @@ from scipy.io import wavfile
 import soundfile as sf
 from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
 from torchmetrics.audio.pesq import PerceptualEvaluationSpeechQuality
+import datetime
+import time
+import pandas as pd
+import sys
+import os
 
+start_time = time.time()
 # %% TFAnalysis setup
 
 # torch.stft is used - more info in pytorch documentation
@@ -83,7 +89,7 @@ def projection_from_spectrum(coeff, reference, mask):
 
 dra_par = {
     "n_ite": 1000,
-    "lambda": 1,
+    "lambda": 1.5,
     "gamma": 1.0
 }
 
@@ -237,3 +243,49 @@ fig3, ax1 = plt.subplots(1, 1)
 ax1.plot(iterations[:-1], relative_change)
 plt.yscale("log")
 fig3.savefig("relative.png")
+
+
+
+# %% Save data
+# For further visuals
+
+
+end_time = time.time()
+session_time = end_time - start_time
+
+
+df = pd.DataFrame({
+    "session_date":start_time,
+    "session_time":session_time,
+    "n_ite":dra_par["n_ite"],
+    "lambda":dra_par["lambda"],
+    "gamma":dra_par["gamma"],
+    "w":dgt_params["w"],
+    "a":dgt_params['a'],
+    "n_fft":dgt_params['n_fft'],
+    "stoi":audio_stoi.numpy(),
+    "pesq":pesq_val.numpy(),
+    "snr":snr_val.numpy(),
+    "snr_gap": snr_val_gap.numpy()
+        },index=[1])
+
+
+
+file = str(os.path.basename(__file__))
+file = file[:-3]
+output_name = file + '_'+str(dra_par["n_ite"])+"ite_lambda_"+'{:.2e}'.format(dra_par["lambda"])+".parquet"
+dir_name = file+'_log'
+if os.path.isdir(dir_name):
+    df.to_parquet(dir_name+'/'+output_name)
+else:
+    os.mkdir(dir_name)
+    df.to_parquet(dir_name+'/'+output_name)
+
+
+if os.path.isfile('dra_speech_total.parquet'):
+    df_tot = pd.read_parquet('dra_speech_total.parquet')
+    df_tot = pd.concat([df_tot,df])
+    df_tot.to_parquet('dra_speech_total.parquet')
+else:
+    df.to_parquet('dra_speech_total.parquet')
+    
