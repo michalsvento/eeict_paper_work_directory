@@ -138,7 +138,6 @@ for i in tqdm(range(dra_par["n_ite"])):
     x =x + dra_par["lambda"]*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi)  #Denoiser -> soft_thresh
     normx[i] = l1norm(tfa.dgt(x))
 
-
 final_x = projection_time_domain(x,ref,mask)
     
 # %% Save audio

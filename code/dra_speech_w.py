@@ -19,7 +19,7 @@ import time
 import pandas as pd
 import sys
 import os
-
+from utils import *
 start_time = time.time()
 # %% TFAnalysis setup
 
@@ -42,20 +42,20 @@ dgt_params = {
 }
 
 
-class Transform_audio():
-    def __init__(self, param):
-        self.w = param['w']
-        self.a = param['a']
-        self.n_fft = param['n_fft']
-        self.hann = torch.hann_window(self.w, dtype=torch.float64)
+# class Transform_audio():
+#     def __init__(self, param):
+#         self.w = param['w']
+#         self.a = param['a']
+#         self.n_fft = param['n_fft']
+#         self.hann = torch.hann_window(self.w, dtype=torch.float64)
 
-    def dgt(self, signal):
-        spectro = torch.stft(signal, self.n_fft, self.a, self.w, self.hann, return_complex=True, normalized=True, onesided=False)
-        return spectro
+#     def dgt(self, signal):
+#         spectro = torch.stft(signal, self.n_fft, self.a, self.w, self.hann, return_complex=True, normalized=True, onesided=False)
+#         return spectro
 
-    def idgt(self, spectro):
-        signal = torch.istft(spectro, self.n_fft, self.a, self.w, self.hann, normalized=True, return_complex=True, onesided=False)
-        return signal
+#     def idgt(self, spectro):
+#         signal = torch.istft(spectro, self.n_fft, self.a, self.w, self.hann, normalized=True, return_complex=True, onesided=False)
+#         return signal
 
 
 tfa = Transform_audio(dgt_params)
@@ -63,28 +63,28 @@ tfa = Transform_audio(dgt_params)
 
 # %% DRA functions and setup
 
-def l1norm(signal):
-    l1norm_signal = torch.linalg.norm(signal, ord=1)
-    return l1norm_signal
+# def l1norm(signal):
+#     l1norm_signal = torch.linalg.norm(signal, ord=1)
+#     return l1norm_signal
 
 
-def soft_thresh(signal, gamma):
-    output = torch.sgn(signal) * torch.maximum((torch.abs(signal)) - gamma, torch.tensor([0]))
-    return output
+# def soft_thresh(signal, gamma):
+#     output = torch.sgn(signal) * torch.maximum((torch.abs(signal)) - gamma, torch.tensor([0]))
+#     return output
 
 
-def projection_time_domain(signal, reference, mask):
-    signal_proj = signal.clone()
-    signal_proj[mask] = reference[mask]
-    return signal_proj
+# def projection_time_domain(signal, reference, mask):
+#     signal_proj = signal.clone()
+#     signal_proj[mask] = reference[mask]
+#     return signal_proj
 
 
-def projection_from_spectrum(coeff, reference, mask):
-    synthetized = tfa.idgt(coeff)  # Dz
-    projn = projection_time_domain(synthetized, reference.type(synthetized.dtype), mask)
-    subtract = synthetized - projn  # Dz-proj(Dz)
-    output = coeff - tfa.dgt(subtract)
-    return output
+# def projection_from_spectrum(coeff, reference, mask):
+#     synthetized = tfa.idgt(coeff)  # Dz
+#     projn = projection_time_domain(synthetized, reference.type(synthetized.dtype), mask)
+#     subtract = synthetized - projn  # Dz-proj(Dz)
+#     output = coeff - tfa.dgt(subtract)
+#     return output
 
 
 dra_par = {
@@ -96,49 +96,25 @@ dra_par = {
 
 # %% DL model
 
-class model(nn.Module):
-    def __init__(self, channels, num_of_layers=17):
-        super(model, self).__init__()
-        kernel_size = 3
-        padding = 1
-        features = 64
-        layers = []
-        layers.append(nn.Conv2d(in_channels=channels, out_channels=features, kernel_size=kernel_size, padding=padding,
-                                bias=False))
-        layers.append(nn.ReLU(inplace=True))
-        for _ in range(num_of_layers - 2):
-            layers.append(
-                nn.Conv2d(in_channels=features, out_channels=features, kernel_size=kernel_size, padding=padding,
-                          bias=False))
-            layers.append(nn.BatchNorm2d(features))
-            layers.append(nn.ReLU(inplace=True))
-        layers.append(nn.Conv2d(in_channels=features, out_channels=channels, kernel_size=kernel_size, padding=padding,
-                                bias=False))
-        self.dncnn = nn.Sequential(*layers)
-
-    def forward(self, x):
-        out = self.dncnn(x)
-        return out
-
-
-denoise = model(1)
+from mayavoz.models import Mayamodel
+model = Mayamodel.from_pretrained("shahules786/mayavoz-waveunet-valentini-28spk")
 
 
 # %% Metrics functions
 
-def SNR(reconstructed, reference):
-    subtract_recon = reference - reconstructed
-    l2_sub = torch.linalg.norm(subtract_recon, ord=2)
-    l2_ref = torch.linalg.norm(reconstructed, ord=2)
-    snr_ratio = 20 * torch.log10(l2_ref / l2_sub)
-    return snr_ratio
+# def SNR(reconstructed, reference):
+#     subtract_recon = reference - reconstructed
+#     l2_sub = torch.linalg.norm(subtract_recon, ord=2)
+#     l2_ref = torch.linalg.norm(reconstructed, ord=2)
+#     snr_ratio = 20 * torch.log10(l2_ref / l2_sub)
+#     return snr_ratio
 
 
-def relative_sol_change(actual_sol, prev_sol):
-    l2_actual = torch.linalg.norm(actual_sol - prev_sol, 2)
-    l2_prev = torch.linalg.norm(prev_sol, 2)
-    rel_change = l2_actual / l2_prev
-    return rel_change
+# def relative_sol_change(actual_sol, prev_sol):
+#     l2_actual = torch.linalg.norm(actual_sol - prev_sol, 2)
+#     l2_prev = torch.linalg.norm(prev_sol, 2)
+#     rel_change = l2_actual / l2_prev
+#     return rel_change
 
 
 # %% DR algorithm
@@ -157,10 +133,7 @@ signal_norm = signal / amplitude
 signal_t = torch.tensor(signal_norm)
 ref = signal_t.clone()
 
-# gap = np.array([Fs,Fs+800])  # pozicia diery
 threshold = 0.4  # i.e. 60% reliables
-# mu, sigma = 0.5, 0.5  # mean and standard deviation
-# mask = np.random.default_rng(seed=42).normal(mu, sigma, len(signal)) > threshold
 mu, sigma = 0.5, 0.5  # mean and standard deviation
 mask = np.random.default_rng(seed=42).uniform(0, 1, len(signal)) > threshold
 signal_t[~mask] = torch.tensor([0])

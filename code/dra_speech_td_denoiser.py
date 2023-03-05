@@ -8,15 +8,15 @@ Created on Wed Feb  8 10:34:09 2023
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
+#import torch.nn as nn
 from tqdm import tqdm
-from scipy.io import wavfile
+#from scipy.io import wavfile
 import soundfile as sf
 from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
 from torchmetrics.audio.pesq import PerceptualEvaluationSpeechQuality
 import librosa
 
-
+from utils import *
 
 from mayavoz.models import Mayamodel
 model = Mayamodel.from_pretrained("shahules786/mayavoz-waveunet-valentini-28spk")
@@ -42,19 +42,19 @@ dgt_params = {
 
 
 
-class Transform_audio():
-    def __init__(self,param):
-        self.w = param['w']
-        self.a = param['a']
-        self.n_fft = param['n_fft']
-        self.hann = torch.hann_window(self.w)
+# class Transform_audio():
+#     def __init__(self,param):
+#         self.w = param['w']
+#         self.a = param['a']
+#         self.n_fft = param['n_fft']
+#         self.hann = torch.hann_window(self.w)
         
-    def dgt(self,signal):
-        spectro = torch.stft(signal, self.n_fft,self.a,self.w,self.hann,return_complex=True,normalized=True)
-        return spectro
-    def idgt(self,spectro):
-        signal = torch.istft(spectro, self.n_fft,self.a,self.w,self.hann,normalized=True)
-        return signal
+#     def dgt(self,signal):
+#         spectro = torch.stft(signal, self.n_fft,self.a,self.w,self.hann,return_complex=True,normalized=True)
+#         return spectro
+#     def idgt(self,spectro):
+#         signal = torch.istft(spectro, self.n_fft,self.a,self.w,self.hann,normalized=True)
+#         return signal
     
     
 tfa = Transform_audio(dgt_params)
@@ -62,18 +62,18 @@ tfa = Transform_audio(dgt_params)
 
 # %% DRA functions and setup
 
-def l1norm(signal):
-    l1norm_signal = torch.linalg.norm(signal,ord=1)
-    return l1norm_signal
+# def l1norm(signal):
+#     l1norm_signal = torch.linalg.norm(signal,ord=1)
+#     return l1norm_signal
 
-def soft_thresh(signal,gamma):
-    output = torch.sgn(signal)*torch.maximum((torch.abs(signal))-gamma,torch.tensor([0]))
-    return output
+# def soft_thresh(signal,gamma):
+#     output = torch.sgn(signal)*torch.maximum((torch.abs(signal))-gamma,torch.tensor([0]))
+#     return output
 
-def projection_time_domain(signal, reference, mask):
-    signal_proj = signal.clone()
-    signal_proj[mask] = reference[mask]
-    return signal_proj
+# def projection_time_domain(signal, reference, mask):
+#     signal_proj = signal.clone()
+#     signal_proj[mask] = reference[mask]
+#     return signal_proj
     
 dra_par ={
     "n_ite":10,
@@ -85,18 +85,18 @@ dra_par ={
 
 # %% Metrics functions
 
-def SNR(reconstructed, reference):
-    subtract_recon = reference-reconstructed
-    l2_sub = torch.linalg.norm(subtract_recon,ord=2)
-    l2_ref = torch.linalg.norm(reconstructed,ord=2)
-    snr_ratio = 20*torch.log10(l2_ref/l2_sub)
-    return snr_ratio
+# def SNR(reconstructed, reference):
+#     subtract_recon = reference-reconstructed
+#     l2_sub = torch.linalg.norm(subtract_recon,ord=2)
+#     l2_ref = torch.linalg.norm(reconstructed,ord=2)
+#     snr_ratio = 20*torch.log10(l2_ref/l2_sub)
+#     return snr_ratio
 
-def relative_sol_change(actual_sol, prev_sol):
-    l2_actual = torch.linalg.norm(actual_sol-prev_sol,2)
-    l2_prev = torch.linalg.norm(prev_sol,2)
-    rel_change = l2_actual/l2_prev
-    return rel_change
+# def relative_sol_change(actual_sol, prev_sol):
+#     l2_actual = torch.linalg.norm(actual_sol-prev_sol,2)
+#     l2_prev = torch.linalg.norm(prev_sol,2)
+#     rel_change = l2_actual/l2_prev
+#     return rel_change
 
 
 # %% Signal loading  
