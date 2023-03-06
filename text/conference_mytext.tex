@@ -83,20 +83,40 @@ In this section, we formulate the first task -- inpainting.
 The proposed method \cite{Chan2016} assumes any damage,
 but we start with missing samples and then expand the model for various damages.
 The rest of the section explains minimization problem solved by DR algorithm.
+Solution has two approaches.
+First, using frequency coefficients as input explained in \ref{subsec:freqcoef}~\cite{Mokry2020}.
+Second, using samples in time domain is described in subsection \ref{subsec:timecoef} \cite{Mokry2021}.
+
 
 \subsection{Task formulation}
 
-We consider column vector $ \mathbf{s} \in \mathbb{R}^{N} $ as our observed damaged single-channel signal of length $ L $.
+We consider column vector $ \mathbf{s} \in \mathbb{R}^{N} $ as our observed damaged single-channel signal of length $ N $.
 We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which have two subsets: $ I^M $ for missing positions and $ I^R $ stands for reliable positions.
+Therefore, samples $ \mathbf{s}(I^M) $ are considered reliable (undamaged) and $ \mathbf{s}(I^R) $ are samples, which we are looking for.
+It is common to rewrite it in matrix form:
+
+\begin{equation*}
+	\mathbf{s}_{\mathrm{R}} = M_{\mathrm{R}}\mathbf{s},
+\end{equation*}
+where $  M_{\mathrm{R}} $ is identity matrix $M_{\mathbb{R}} \in R ^ { |I^R| \times N}$ ($ |I^R|$ as length of subset) \cite{Adler2012}.
 
 
 
-\subsection{Douglas-Rachford algorithm}
 
-We define our task as sparsity-based problem, minimizing $ \ell_1 $ norm of signal.
+\subsection{COEFFS INPUT Aprroach -- WORK NAME}\label{subsec:freqcoef}
 
+We define our task as sparsity-based problem, minimizing $ \ell_0 $ norm of signal $ \mathbf{s} $.
+However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
+The closest redefinition is to use the l1 norm as follows:
 
-	
+\begin{equation*}
+ \mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma, \tag{1}
+\end{equation*} 
+where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assume $ A $, $ D = A^* $ and therefore reconstructed signal corresponds to $ \mathbf {y} \approx  D\mathbf {c}$.
+Set $ \Gamma $ is defined as follows:
+
+\begin{equation*} \Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace, \tag{2}\end{equation*}
+
 \begin{algorithm}
 	\caption{Douglas-Rachford algorithm -- model with frequency coefficients}
 	\begin{algorithmic}[1]\label{alg:DRA_c}
@@ -107,11 +127,24 @@ We define our task as sparsity-based problem, minimizing $ \ell_1 $ norm of sign
 		\STATE $\mathbf{\widetilde{c}}_n=\operatorname{proj}_{\Gamma}(\mathbf{c}_n) $ 
 		\STATE $ \mathbf{c}_{n+1} = \mathbf{c}_n + \lambda \left( \operatorname{soft}_{\gamma}\left(2\mathbf{\widetilde{c}}_n-\mathbf{c}_n \right)-\mathbf{\widetilde{c}}_n\right)$
 		\ENDFOR
-		\RETURN $D(\operatorname{proj}_{\Gamma}(\mathbf{x}_n))$ 
+		\RETURN $D(\operatorname{proj}_{\Gamma}(\mathbf{c}_n))$ 
 	\end{algorithmic} 
 \end{algorithm}
+In \ref{alg:DRA_c} with $ \operatorname{proj}_{\Gamma} $ is projection onto convex set $ \Gamma $.
 
-In \ref{alg:DRA_c} with $ \operatorname{proj}_{\Gamma} $ we mean projection onto convex set $ \Gamma $.
+
+\subsection{SAMPLES as INPUT APPROACH}\label{subsec:timecoef}
+
+\begin{equation*}
+	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ D\mathbf {s}\in \Gamma, \tag{3}
+\end{equation*} 
+
+\begin{equation*}
+	\Gamma = \lbrace \mathbf {z}\in \mathbb {C}^L\mid M_{\mathrm{R}}\mathbf {z}=M_{\mathrm{R}}\mathbf {y}\rbrace, \tag{4} 
+\end{equation*}
+
+
+
 
 \begin{algorithm}
 	\caption{Douglas-Rachford algorithm -- model with time coefficients}
@@ -126,6 +159,8 @@ In \ref{alg:DRA_c} with $ \operatorname{proj}_{\Gamma} $ we mean projection onto
 		\RETURN $\operatorname{proj}_{\Gamma}(\mathbf{x}_n)$ 
 	\end{algorithmic} 
 \end{algorithm}
+
+Projection, in this case, is simply replacing reconstructed samples with samples considered reliable.
 
 \section{Plug-and-Play inpainting} \label{sec:plugaandplay}
 
@@ -163,17 +198,6 @@ acknowledgments in the unnumbered footnote on the first page.
 \bibliographystyle{IEEEtran}
 \bibliography{bib_eeict2023}
 
-%\begin{thebibliography}{00}
-%\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
-%\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-%\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-%\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-%\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-%\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-%\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
-%\end{thebibliography}
-\vspace{12pt}
-\color{red}
-IEEE conference templates contain guidance text for composing and formatting conference papers. Please ensure that all template text is removed from your conference paper prior to submission to the conference. Failure to remove the template text from your paper may result in your paper not being published.
+
 
 \end{document}

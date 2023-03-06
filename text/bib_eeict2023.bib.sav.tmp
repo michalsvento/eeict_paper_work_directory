@@ -78,4 +78,80 @@
   number   = {5},
   pages    = {1124--1135},
   volume   = {44},
-  abstract = {This paper presents an algorithm for the interpolation of a missing signal segment on the assumption that the signal can be modeled as an autoreg
+  abstract = {This paper presents an algorithm for the interpolation of a missing signal segment on the assumption that the signal can be modeled as an autoregressive (AR) process. Unlike previous algorithms, the presented algorithm does not model the signal of the missing segment and the neighboring signal portions by a single AR-parameter vector. Instead, two separate vectors are used so that stationarity need no longer be assumed to extend beyond both sides of the missing segment. The relaxation of this stationarity assumption is essential when the duration of the missing segment is on the order of the short-time stationarity duration of the signal. The algorithm provides the optimal solution to the problem of interpolating a missing segment based on the left-sided and right-sided AR-parameter vectors. The solution is optimal in the sense of a least-squares residual. The algorithm is applied to speech and music signals and is compared with other restoration techniques.},
+  doi      = {10.1109/78.502326},
+  file     = {IEEE Xplore Full Text PDF:https\://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=502326&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2RvY3VtZW50LzUwMjMyNg==:application/pdf},
+  keywords = {Signal restoration, Interpolation, Signal processing, Speech, Extrapolation, Iterative algorithms, Multiple signal classification, Sampling methods, Audio tapes, Audio recording},
+}
+
+ 
+@InProceedings{Mokry2019,
+  author    = {Mokrý, Ondřej and Záviška, Pavel and Rajmic, Pavel and Veselý, Vítězslav},
+  booktitle = {2019 27th {European} {Signal} {Processing} {Conference} ({EUSIPCO})},
+  title     = {Introducing {SPAIN} ({SParse} {Audio} {INpainter})},
+  year      = {2019},
+  month     = sep,
+  note      = {ISSN: 2076-1465},
+  pages     = {1--5},
+  abstract  = {A novel sparsity-based algorithm for audio inpainting is proposed. It is an adaptation of the SPADE algorithm by Kitić et al., originally developed for audio declipping, to the task of audio inpainting. The new SPAIN (SParse Audio INpainter) comes in synthesis and analysis variants. Experiments show that both A-SPAIN and S-SPAIN outperform other sparsity-based inpainting algorithms. Moreover, A-SPAIN performs on a par with the state-of-the-art method based on linear prediction in terms of the SNR, and, for larger gaps, SPAIN is even slightly better in terms of the PEMO-Q psychoacoustic criterion.},
+  doi       = {10.23919/EUSIPCO.2019.8902560},
+  file      = {IEEE Xplore Full Text PDF:https\://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=8902560&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2RvY3VtZW50Lzg5MDI1NjA=:application/pdf},
+  issn      = {2076-1465},
+  keywords  = {Task analysis, Signal processing algorithms, Approximation algorithms, Signal to noise ratio, Reliability, Time-domain analysis, Inpainting, Sparse, Cosparse, Synthesis, Analysis},
+}
+
+ 
+@Article{Adler2012,
+  author   = {Adler, Amir and Emiya, Valentin and Jafari, Maria and Elad, Michael and Gribonval, Remi and Plumbley, Mark},
+  journal  = {IEEE Transactions on Audio Speech and Language Processing},
+  title    = {Audio {Inpainting}},
+  year     = {2012},
+  month    = mar,
+  pages    = {922--932},
+  volume   = {20},
+  abstract = {We propose the audio inpainting framework that recovers portions of audio data distorted due to impairments such as impulsive noise, clipping, and packet loss. In this framework, the distorted data are treated as missing and their location is assumed to be known. The signal is decomposed into overlapping time-domain frames and the restoration problem is then formulated as an inverse problem per audio frame. Sparse representation modeling is employed per frame, and each inverse problem is solved using the Orthogonal Matching Pursuit algorithm together with a discrete cosine or a Gabor dictionary. The Signal-to-Noise Ratio performance of this algorithm is shown to be comparable or better than state-of-the-art methods when blocks of samples of variable durations are missing. We also demonstrate that the size of the block of missing samples, rather than the overall number of missing samples, is a crucial parameter for high quality signal restoration. We further introduce a constrained Matching Pursuit approach for the special case of audio declipping that exploits the sign pattern of clipped audio samples and their maximal absolute value, as well as allowing the user to specify the maximum amplitude of the signal. This approach is shown to outperform state-of-the-art and commercially available methods for audio declipping in terms of Signal-to-Noise Ratio.},
+  doi      = {10.1109/TASL.2011.2168211},
+  file     = {Full Text PDF:https\://www.researchgate.net/profile/Amir-Adler/publication/224258540_Audio_Inpainting/links/55df72c808ae6abe6e8652dc/Audio-Inpainting.pdf:application/pdf;ResearchGate Link:https\://www.researchgate.net/publication/224258540_Audio_Inpainting:},
+}
+
+ 
+@TechReport{Kitic2015,
+  author     = {Kitić, Srđan and Bertin, Nancy and Gribonval, Rémi},
+  title      = {Sparsity and cosparsity for audio declipping: a flexible non-convex approach},
+  year       = {2015},
+  month      = jun,
+  note       = {arXiv:1506.01830 [cs] type: article},
+  abstract   = {This work investigates the empirical performance of the sparse synthesis versus sparse analysis regularization for the ill-posed inverse problem of audio declipping. We develop a versatile non-convex heuristics which can be readily used with both data models. Based on this algorithm, we report that, in most cases, the two models perform almost similarly in terms of signal enhancement. However, the analysis version is shown to be amenable for real time audio processing, when certain analysis operators are considered. Both versions outperform state-of-the-art methods in the field, especially for the severely saturated signals.},
+  doi        = {10.48550/arXiv.1506.01830},
+  file       = {arXiv Fulltext PDF:https\://arxiv.org/pdf/1506.01830.pdf:application/pdf},
+  keywords   = {Computer Science - Sound},
+  school     = {arXiv},
+  shorttitle = {Sparsity and cosparsity for audio declipping},
+  url        = {http://arxiv.org/abs/1506.01830},
+  urldate    = {2023-02-27},
+}
+
+ 
+@InProceedings{Zaviska2019,
+  author    = {Záviška, Pavel and Rajmic, Pavel and Mokrý, Ondřej and Průša, Zdeněk},
+  booktitle = {{ICASSP} 2019 - 2019 {IEEE} {International} {Conference} on {Acoustics}, {Speech} and {Signal} {Processing} ({ICASSP})},
+  title     = {A {Proper} {Version} of {Synthesis}-based {Sparse} {Audio} {Declipper}},
+  year      = {2019},
+  month     = may,
+  note      = {ISSN: 2379-190X},
+  pages     = {591--595},
+  abstract  = {Methods based on sparse representation have found great use in the recovery of audio signals degraded by clipping. The state of the art in declipping within the sparsity-based approaches has been achieved by the SPADE algorithm by Kitić et. al. (LVA/ICA'15). Our recent study (LVA/ICA'18) has shown that although the original S-SPADE can be improved such that it converges faster than the A-SPADE, the restoration quality is significantly worse. In the present paper, we propose a new version of S-SPADE. Experiments show that the novel version of S-SPADE outperforms its old version in terms of restoration quality, and that it is comparable with the A-SPADE while being even slightly faster than A-SPADE.},
+  doi       = {10.1109/ICASSP.2019.8682348},
+  file      = {IEEE Xplore Full Text PDF:https\://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=8682348&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2RvY3VtZW50Lzg2ODIzNDg=:application/pdf},
+  issn      = {2379-190X},
+  keywords  = {Convex functions, Time-domain analysis, Discrete Fourier transforms, Minimization, Approximation algorithms, Redundancy, Declipping, Sparse, Cosparse, Synthesis, Analysis},
+}
+
+ 
+@TechReport{Hao2021,
+  author     = {Hao, Xiang and Su, Xiangdong and Horaud, Radu and Li, Xiaofei},
+  title      = {{FullSubNet}: {A} {Full}-{Band} and {Sub}-{Band} {Fusion} {Model} for {Real}-{Time} {Single}-{Channel} {Speech} {Enhancement}},
+  year       = {2021},
+  month      = jan,
+  note       = {arXiv:2010.15508 [cs, eess] type: article},
+  abstract   = {This paper proposes a full-band and sub-band fusion model, named as Ful
