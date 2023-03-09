@@ -17,7 +17,7 @@ import pandas as pd
 import os
 import librosa
 import datetime
-from utils import Transform_audio,relative_sol_change,projection_time_domain,l1norm, SNR, soft_thresh
+from utils import Transform_audio,relative_sol_change,projection_time_domain_mix,l1norm, SNR, soft_thresh
 
 
 # %% SETUP
@@ -40,14 +40,14 @@ dra_par = {
     "n_ite": 50,
     "lambda": 1,
     "lambda_n": 1,
-    "gamma": 1.0,
+    "gamma": 0.10,
     "eta": 0.5
 }
 
 
 session_date = datetime.date.today()
 
-dir_name_vis = 'td_4'
+dir_name_vis = 'td_input_noise_ref_clean'
 print('Folder exists')if os.path.isdir(dir_name_vis) else os.mkdir(dir_name_vis)
 
 
@@ -73,15 +73,20 @@ model = Mayamodel.from_pretrained("shahules786/mayavoz-waveunet-valentini-28spk"
 # %% Signal loading  
 
 
-orig_signal, Fs = librosa.load("male.wav",sr=None)
+orig_signal, Fs = librosa.load("noise119.wav",sr=16000)
+ref_sig , Fs = librosa.load("clean119.wav",sr=16000)
 orig_signal = orig_signal[0:Fs*2]
+ref_sig = ref_sig[0:Fs*2]
 pad_size = dgt_params['n_fft'] - len(orig_signal) % dgt_params['n_fft']
 signal = np.concatenate((orig_signal,np.zeros([pad_size]))).astype(np.double())
+ref_signal =  np.concatenate((ref_sig,np.zeros([pad_size]))).astype(np.double())
+
 
 amplitude = np.iinfo(np.int16).max
 signal_norm = signal #/ amplitude
 signal_t = torch.from_numpy(signal_norm).float()#.unsqueeze(0)
-ref = signal_t.clone()
+signal_ref= torch.from_numpy(ref_signal).float()
+ref = signal_ref.clone()
 
 
 #gap = np.array([Fs,Fs+400])  # pozicia diery
@@ -93,6 +98,7 @@ mask = torch.tensor(mask)
 mask = torch.tensor(mask)
 masksignal_t = signal_t.clone()
 masksignal_t[~mask] = torch.tensor([0])
+masksignal_t = masksignal_t  #0.05*torch.randn_like(masksignal_t)
 
 signal_ID = 1
 
@@ -104,15 +110,17 @@ stoi = ShortTimeObjectiveIntelligibility(Fs, False)
 # Perceptual Evaluation of Speech Quality (PESQ)
 pesq = PerceptualEvaluationSpeechQuality(Fs, 'nb')
 
-# lambda_table = np.logspace(-3,1,4,base=2.0,endpoint=False)  # lambda 0-1 
+# lambda_table = np.logspace(-3,1,10,base=2.0,endpoint=False)  # lambda 0-1 
 lambda_table = np.array([1])
 
-for lam in range(len(lambda_table)):
-    idx_ct = lam*2+1
-    print('LAMBDA ',lam+1,'/',len(lambda_table))
-    dra_par['lambda'] = lambda_table[lam]
-    dra_par['lambda_n'] = lambda_table[lam]
-    
+# percentage divisions
+mix_fraction = np.arange(0,1.1,0.1)
+
+for lam in range(len(mix_fraction)):
+    idx_ct = 2*lam
+    print('ITE ',lam+1,'/',len(mix_fraction))
+    dra_par['lambda'] = 1#lambda_table[lam]
+    dra_par['lambda_n'] = 1#lambda_table[lam]
     normx = np.zeros([dra_par["n_ite"],1])
     relative_change = np.zeros([dra_par["n_ite"]-1,2])
     iterations = np.arange(1,dra_par["n_ite"]+1)
@@ -131,15 +139,18 @@ for lam in range(len(lambda_table)):
     start_time = time.time()
     
     for i in tqdm(range(dra_par["n_ite"])):
-        xi = projection_time_domain(x.float(), ref, mask)
+        xi = projection_time_domain_mix(x.float(), masksignal_t, mask,mix_fraction[lam])
         snr_after_ite[i,0] = SNR(xi,ref)
+        if i==1:
+            xn = x.clone() 
         if i>0:
             relative_change[i-1,0]=relative_sol_change(xi, x_prev)
         x_prev = xi.clone()
         x =x + dra_par["lambda"]*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi)  #Denoiser -> soft_thresh
         normx[i] = l1norm(tfa.dgt(x))
+        dra_par["lambda"] =  dra_par["lambda"] * 0.9
     
-    final_x = projection_time_domain(x.float(),ref,mask)
+    final_x = projection_time_domain_mix(x.float(),ref,mask,mix_fraction[lam])
     
     SNR_max = np.max(snr_after_ite[:,0])
     SNR_idx = np.argmax(snr_after_ite[:,0])
@@ -187,11 +198,12 @@ for lam in range(len(lambda_table)):
         "snr_gap": snr_val_gap.item(),
         "SNR_MAX": SNR_max,
         "SNR_IDX": SNR_idx,
-        "rel_change": relative_change[-1,0]
+        "rel_change": relative_change[-1,0],
+        "proj_frac":mix_fraction[lam]
             },index=[idx_ct])
     
-    idx_ct = lam*2
-    
+    idx_ct = lam*2+1
+     
     file = 'td'
     output_name = file + '_'+str(dra_par["n_ite"])+"ite_lambda_"+'{:.2e}'.format(dra_par["lambda"])+".parquet"
     dir_name = file+'_log'
@@ -217,7 +229,7 @@ for lam in range(len(lambda_table)):
     xn_prev = xn.clone()
     
     for i in tqdm(range(dra_par["n_ite"])):
-        xin =  projection_time_domain(xn.float(), ref, mask)
+        xin =  projection_time_domain_mix(xn.float(), masksignal_t, mask, mix_fraction[lam])
         snr_after_ite[i,1] = SNR(xn,ref)
         if i>0:
             relative_change[i-1,1]=relative_sol_change(xin, xn_prev)
@@ -226,15 +238,16 @@ for lam in range(len(lambda_table)):
         #         dra_par["lambda"] = dra_par["lambda"]+0.1
         #     else:
         #         dra_par["lambda"] = dra_par["lambda"]-0.01
-        if (dra_par["lambda_n"]>=0 or dra_par["lambda_n"]<=2*dra_par["eta"]):
-            dra_par["lambda_n"] =  dra_par["lambda_n"] * 0.9
-        else:
-            dra_par["lambda_n"] = dra_par["eta"]
+        # if (dra_par["lambda_n"]>=0 or dra_par["lambda_n"]<=2*dra_par["eta"]):
+        #     dra_par["lambda_n"] =  dra_par["lambda_n"] * 0.9
+        # else:
+        #     dra_par["lambda_n"] = dra_par["eta"]
+        dra_par["lambda_n"] =  dra_par["lambda_n"] * 0.9
         xn_prev = xin.clone()
         xn =xn + dra_par["lambda_n"]*(model.enhance(2*xin - xn,sampling_rate=Fs).squeeze()-xin) #Denoiser -> soft_thresh
        
-    # final_xn = projection_time_domain(xn,ref,mask)
-    final_xn = xn
+    final_xn = projection_time_domain_mix(xn,ref,mask,mix_fraction[lam])
+    #final_xn = xn
     
     SNR_max = np.max(snr_after_ite[:,1])
     SNR_idx = np.argmax(snr_after_ite[:,1])
@@ -274,8 +287,8 @@ for lam in range(len(lambda_table)):
         "snr_gap": snr_val_gap.item(),
         "SNR_MAX": SNR_max,
         "SNR_IDX": SNR_idx,
-        "rel_change": relative_change[-1,1]
-        
+        "rel_change": relative_change[-1,1],
+        "proj_frac": mix_fraction[lam]
             },index=[idx_ct])
     
     
@@ -346,4 +359,8 @@ for lam in range(len(lambda_table)):
     
     sf.write(dir_name_vis+'/'+d_wave+'/'+now_str+'_classic.wav',final_x,Fs)
     sf.write(dir_name_vis+'/'+d_wave+'/'+now_str+'_neural.wav',final_xn,Fs)
+
+
+
+
 
