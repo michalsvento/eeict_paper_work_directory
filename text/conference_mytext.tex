@@ -9,6 +9,10 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{hyperref}
+
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -27,8 +31,8 @@
 %212584@vut.cz}
 \IEEEauthorblockA{
 	\textit{Brno University of Technology, FEEC,} \\
-	\textit{Dept. of Telecommunications,} \\
-	Technicka 12, 616 00 Brno, Czech Republic \\
+	\textit{Department of Telecommunications,} \\
+	Technická 12, 616 00 Brno, Czech Republic \\
 	\href{mailto:212584@vut.cz}{212584@vut.cz}
 }
 \and
@@ -39,8 +43,8 @@
 %xmokry12@vut.cz}
 \IEEEauthorblockA{
 	\textit{Brno University of Technology, FEEC,} \\
-	\textit{Dept. of Telecommunications,} \\
-	Technicka 12, 616 00 Brno, Czech Republic \\
+	\textit{Department of Telecommunications,} \\
+	Technická 12, 616 00 Brno, Czech Republic \\
 	\href{mailto:xmokry12@vut.cz}{xmokry12@vut.cz}
 }
 }
@@ -48,48 +52,61 @@
 \maketitle
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+\todo{Plug-and-play má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích (to je zvýšení toho proj faktoru) v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
 \end{abstract}
 
 \begin{IEEEkeywords}
-speech enhancement, deep learning, Douglas-Rachford algorithm
+speech enhancement, deep learning, denoising, Douglas--Rachford algorithm, inpainting
 \end{IEEEkeywords}
 
 \section{Introduction}
 
 Audio enhancement tasks mostly face problems like missing or damaged samples, noise, or clipping.
-If we consider speech signal, we should not avoid the intelligibility problems.
-Each problem has developed its own way of enhancing the signal.
-Nowadays, the bestway to differentiate algorithms is with two categories:
-conventional (autoregressive models, sparsity-based) and solutions using deep learning.
+Considering speech signals, we %should not avoid the intelligibility problems.
+are not only interested in restoring the degradation sample by sample, but we also aim at improving the intelligibility of the recorded speech.
+Each restoration problem has developed its own way of enhancing the signal.
+Nowadays, the best way to differentiate algorithms is into two categories:
+conventional, e.g.\ using autoregressive (AR) modeling or sparsity-based optimization, and solutions using deep learning.
+The present paper focuses on the case of restoring a partially observed signal whose observed samples are further degraded by noise, i.e., the aim is to perform simultaneous inpainting and denoising of the speech signal.
 
-In conventional methods dominates Janssen \cite{Janssen1986} and Etter~\cite{Etter1996}.
-These approaches are based on autoregressive signal modeling \cite{Mokry2020}.
-Sparse signal representation has changed efficiency of restoration, mainly because increase of computing power.
-The information hidden in frequency representation (using proper time-frequency analysis) is sparse, i.e. we do not need each spectral coefficient to repair the signal with improved subjective results.
-The most advanced works using sparsity are \cite{Adler2012,Kitic2015,Zaviska2019, Mokry2019}.
-
+In conventional approaches to inpainting, the AR-based Janssen \cite{Janssen1986} and Etter~\cite{Etter1996} algorithms dominate in terms of reconstruction quality.
+% These approaches are based on autoregressive signal modeling \cite{Mokry2020}.
+% Sparse signal representation has changed efficiency of restoration, mainly because increase of computing power.
+A more recent, successful class of methods is based on sparsity.
+The key idea is that after performing proper time-frequency analysis of an audio signal,
+most of the information is concentrated in a few coefficients, i.e., it is sparse.
+This can be applied as fitting the sparsest possible reconstruction either to the reliable observed samples \cite{Adler2012, Kitic2015, Zaviska2019, Mokry2019}, or to a signal not much diverging from the observation in the case of denoising \cite{Kowalski2013}.
+% The information hidden in frequency representation (using proper time-frequency analysis) is sparse, i.e. we do not need each spectral coefficient to repair the signal with improved subjective results.
+%The most advanced works using sparsity are \cite{Adler2012,Kitic2015,Zaviska2019, Mokry2019}.
 
 Deep learning algorithms have also made their own progress in this area.
 The most efficient neural network models are autoencoders,
-recurrent neural networks (RNNs) and
-Generative Adversial Network (GAN).
-Current state-of-the-art deep learned algorithms are Speech Enhancement GAN (SEGAN) \cite{Pascual2017}, NSNet \cite{Xia2020}, FullSubNet \cite{Hao2021}. 
+recurrent neural networks (RNN) and
+Generative Adversial Networks (GAN).
+Current state-of-the-art deep learned algorithms are Speech Enhancement GAN (SEGAN) \cite{Pascual2017}, NSNet \cite{Xia2020}, FullSubNet \cite{Hao2021}.
+While learning-based algorithms allow to adapt to real-world signals, rather than to rely on hand-crafted priors like sparsity or the AR nature of signals, they need large datasets for training.
+Furthermore, neural networks are usually trained for a specific problem, lacking universal applicability on similar restoration tasks, in contrast to sparsity-based methods \cite{Gaultier2017, Mokry202021, Zaviska2021}.
 
-In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
-The idea of a hybrid model,
-combining conventional approach (convex minimization) with deep learning,
-has shown succesful.
-Our motivation is to transform this model to audio problems with minor differences.
-We replace Alternating Direction Multiplier Method (ADMM) with Douglas-Rachford algorithm (DR~algorithm).
-Denoiser will be chosen from state-of-the-art audio denoisers. 
+As a compromise between the conventional and learning-based methods, 
+% In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
+the Plug-and-Play method for image restoration was introduced in \cite{Chan2016},
+where part of each iteration of an optimization algorithm is replaced by a (learned) denoiser.
+% The idea of a hybrid model,
+% combining conventional approach (convex minimization) with deep learning,
+% has shown succesful.
+In the present paper, we propose a hybrid algorithm based on the same paradigm, aiming at restoration of degraded speech.
+While \cite{Chan2016} focused on adapting the Alternating Direction method of Multipliers (ADMM) and a recent declipping approach used the learned element only partially \cite{Tanaka2022}, we choose an opposite approach by working with a simple Douglas--Rachford algorithm (DRA) and exploring the trade-off between data fitting and denoising in the algorithm.
+
+
+%Our motivation is to transform this model to audio problems with minor differences.
+%We replace Alternating Direction Multiplier Method (ADMM) with Douglas-Rachford algorithm (DR~algorithm).
+%Denoiser will be chosen from state-of-the-art audio denoisers. 
 
 %% Introduction to sections.
-This paper is organized as follows. In section \ref{sec:prereq} we introduce our task in mathematical view and compose minimazation task.
-Section \ref{sec:plugaandplay}  presents Plug-and-Play method and its challenges.
-Section \ref{sec:eval} discusses about results and further improvements of algorithm.
+The paper is organized as follows. In section \ref{sec:prereq} we introduce the task from mathematical point of view and we define the restoration as a minimization task.
+Section \ref{sec:plugaandplay} presents the Plug-and-Play method and its challenges.
+Section \ref{sec:eval} discusses the results and further improvements of algorithm.
+Finally, Section \ref{sec:conclusion} concludes the paper.
 
 \section{Prerequsities}\label{sec:prereq} 
 
@@ -210,13 +227,18 @@ Projection, in this case, is simply replacing reconstructed samples in positions
 
 
 \section{Conclusion}
+\label{sec:conclusion}
 
-\section*{Acknowledgment}
+\todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
 
-The preferred spelling of the word ``acknowledgment'' in America is without 
-an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B. 
-G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
-acknowledgments in the unnumbered footnote on the first page.
+\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
+
+%\section*{Acknowledgment}
+%
+%The preferred spelling of the word ``acknowledgment'' in America is without 
+%an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B. 
+%G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
+%acknowledgments in the unnumbered footnote on the first page.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib_eeict2023}

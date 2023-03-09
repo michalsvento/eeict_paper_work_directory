@@ -274,4 +274,9 @@ TSWLatexianTemp*
 
 # Makeindex log files
 *.lpz
+
+# paper pdf
 text/conference_mytext.pdf
+
+# more
+.idea/*
