@@ -47,7 +47,7 @@ dra_par = {
 
 session_date = datetime.date.today()
 
-dir_name_vis = 'td_input_noise_ref_clean'
+dir_name_vis = 'td_test'
 print('Folder exists')if os.path.isdir(dir_name_vis) else os.mkdir(dir_name_vis)
 
 
