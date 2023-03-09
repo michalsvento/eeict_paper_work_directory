@@ -110,10 +110,13 @@ Finally, Section \ref{sec:conclusion} concludes the paper.
 
 \section{Prerequsities}\label{sec:prereq} 
 
+\todo{Asi můžeme nechat obě formulace, protože zapadají do příběhu -- máme formulaci pro koeficienty, která umožňuje formulovat DRA s projekcí a soft. My ale chceme upravovat proximální operátor definovaný na signálu, proto máme druhou formulaci a k ní příslušný (přibližný) algoritmus \ref{alg:DRA_t}.
+U varianty koeficienty bych ale možná nechal formulaci, ale algoritmus \ref{alg:DRA_c} bych možná vypustil.}
+
 In this section, we formulate the first task -- inpainting.
 The proposed method \cite{Chan2016} assumes any damage,
 but we start with missing samples and then expand the model for various damages.
-The rest of the section explains minimization problem solved by DR algorithm.
+The rest of the section explains minimization problem solved by DRA.
 Solution has two approaches.
 First, using frequency coefficients as input explained in \ref{subsec:freqcoef}~\cite{Mokry2020}.
 Second, using samples in time domain is described in subsection \ref{subsec:timecoef} \cite{Mokry2021}.
@@ -122,31 +125,44 @@ Second, using samples in time domain is described in subsection \ref{subsec:time
 \subsection{Task formulation}
 
 We consider column vector $ \mathbf{s} \in \mathbb{R}^{N} $ as our observed damaged single-channel signal of length $ N $.
-We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which have two subsets: $ I^M $ for missing positions and $ I^R $ stands for reliable positions.
-Therefore, samples $ \mathbf{s}(I^M) $ are considered reliable (undamaged) and $ \mathbf{s}(I^R) $ are samples, which we are looking for.
+We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which has two disjunctive subsets: $ I^M $ for missing positions and $ I^R $ stands for reliable positions.
+Usually, samples $ \mathbf{s}(I^R) $ are considered reliable (undamaged) and $ \mathbf{s}(I^M) $ are samples, which we are looking for.
 It is common to rewrite it in matrix form:
-
 \begin{equation*}
 	\mathbf{s}_{\mathrm{R}} = \mathbf{M}_{\mathrm{R}}\mathbf{s},
 \end{equation*}
-where $  M_{\mathrm{R}} $ is mask matrix $\mathbf{M}_{R} \in \mathbb{R} ^ { |I^R| \times N}$ ($ |I^R|$ as length of subset), selecting rows frow indentity matrix $ \mathbf{M} $\cite{Adler2012}.
+where $\mathbf{M}_{R} \in \mathbb{R} ^ { |I^R| \times N}$ ($ |I^R|$ denotes the number of indices in the subset $I^R$) is the mask matrix, selecting rows from indentity matrix corresponding to the indices in $I^R$ \cite{Adler2012}.
+In words, $\mathbf{M}_{\mathrm{R}}\mathbf{s}$ represents choosing the samples from $\mathbf{s}$ on positions $I^R$.
 
-
+It is natural to define the set of signals fitting the observation as
+\begin{equation}
+	\label{eq:Gamma}
+	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+\end{equation}
+In the noise-less case, we would search for a suitable signal in $\Gamma$.
+On the other hand, when the observed samples are distorted by noise, we only require the solution \todo{(zavedeme si nějaké značení pro výsledný signál?)} to be close to the set $\Gamma$.
 
 
 \subsection{COEFFS INPUT Aprroach -- WORK NAME}\label{subsec:freqcoef}
+\todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
 
-We define our task as sparsity-based problem, minimizing $ \ell_0 $ norm of signal $ \mathbf{s} $.
+We define our task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the time-frequency (TF) \todo{(možná hned používat Gabor coefficients, ať dále dává smysl termín Gabor transform)} coefficients of the signal $ \mathbf{s} $.
 However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
 The closest redefinition is to use the $ \ell_1 $ norm as follows:
 
-\begin{equation*}
- \mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma, \tag{1}
-\end{equation*} 
-where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assume $ A $, $ D = A^* $ and therefore reconstructed signal corresponds to $ \mathbf {y} \approx  D\mathbf {c}$.
-Set $ \Gamma $ is defined as follows:
+\begin{equation}
+ \mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma
+\end{equation} 
+where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assume $ A $, $ D = A^* $ and therefore the reconstructed signal corresponds to $ \mathbf {y} \approx  D\mathbf {c}$.
+\todo{Je správně $ \mathbf {y} \approx  D\mathbf {c}$, nebo $ \mathbf {y} =  D\mathbf {c}$?}
 
-\begin{equation*} \Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace, \tag{2}\end{equation*}
+\todo{Definici $\Gamma$ jsem posunul výše.}
+% Set $ \Gamma $ is defined as follows:
+
+%\begin{equation}
+%	\label{eq:Gamma}
+%	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace,
+%\end{equation}
 
 One of the suitable solutions is DR algorithm in \ref{alg:DRA_c} \cite{Mokry2020}.
 
@@ -178,20 +194,21 @@ Problem is,
 that we do not know proximal operator of $ \ell_1 $ norm after analysis, but we can use approximal operator \cite{Mokry2021}.
 
 The main minimazation task reformulates as:
-\begin{equation*}
-	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ \mathbf {s}\in \Gamma, \tag{3}
-\end{equation*} 
-and $ \Gamma $ is similarly as in  (eqref2) % Tags???????  
-\begin{equation*}
-	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace. \tag{4} 
-\end{equation*}
+\begin{equation}
+	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ \mathbf {s}\in \Gamma,
+\end{equation} 
+and $ \Gamma $ is similarly as in \eqref{eq:Gamma} % Tags???????  
+\todo{Tuto rovnici tu máme dvakrát.}
+\begin{equation}
+	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+\end{equation}
 Afterwards our algorithm resolves to following: 
 \begin{algorithm}
 	\caption{Douglas-Rachford algorithm -- model with time coefficients}
-	\begin{algorithmic}[1]
+	\begin{algorithmic}[1]\label{alg:DRA_t}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE $ \lambda > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $
+		\REQUIRE $ \lambda > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $ \todo{Zmínit, že $\lambda$ může být (a u nás bude) proměnné.}
 		\FOR {$n = 0, 1, \dots$}
 		\STATE $\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
 		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda \left( D\left(\operatorname{soft}_{\gamma}\left(A\left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n\right) \right)\right) -\mathbf{\widetilde{x}}_n\right)$
