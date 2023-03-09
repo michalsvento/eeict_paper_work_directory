@@ -9,6 +9,10 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{hyperref}
+
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -27,8 +31,8 @@
 %212584@vut.cz}
 \IEEEauthorblockA{
 	\textit{Brno University of Technology, FEEC,} \\
-	\textit{Dept. of Telecommunications,} \\
-	Technicka 12, 616 00 Brno, Czech Republic \\
+	\textit{Department of Telecommunications,} \\
+	Technická 12, 616 00 Brno, Czech Republic \\
 	\href{mailto:212584@vut.cz}{212584@vut.cz}
 }
 \and
@@ -39,8 +43,8 @@
 %xmokry12@vut.cz}
 \IEEEauthorblockA{
 	\textit{Brno University of Technology, FEEC,} \\
-	\textit{Dept. of Telecommunications,} \\
-	Technicka 12, 616 00 Brno, Czech Republic \\
+	\textit{Department of Telecommunications,} \\
+	Technická 12, 616 00 Brno, Czech Republic \\
 	\href{mailto:xmokry12@vut.cz}{xmokry12@vut.cz}
 }
 }
@@ -48,13 +52,11 @@
 \maketitle
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+\todo{Plug-and-play má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích (to je zvýšení toho proj faktoru) v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
 \end{abstract}
 
 \begin{IEEEkeywords}
-speech enhancement, deep learning, Douglas-Rachford algorithm
+speech enhancement, deep learning, denoising, Douglas--Rachford algorithm, inpainting
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -211,12 +213,16 @@ Projection, in this case, is simply replacing reconstructed samples in positions
 
 \section{Conclusion}
 
-\section*{Acknowledgment}
+\todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
 
-The preferred spelling of the word ``acknowledgment'' in America is without 
-an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B. 
-G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
-acknowledgments in the unnumbered footnote on the first page.
+\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
+
+%\section*{Acknowledgment}
+%
+%The preferred spelling of the word ``acknowledgment'' in America is without 
+%an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B. 
+%G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
+%acknowledgments in the unnumbered footnote on the first page.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bib_eeict2023}
