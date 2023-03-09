@@ -96,9 +96,9 @@ Therefore, samples $ \mathbf{s}(I^M) $ are considered reliable (undamaged) and $
 It is common to rewrite it in matrix form:
 
 \begin{equation*}
-	\mathbf{s}_{\mathrm{R}} = M_{\mathrm{R}}\mathbf{s},
+	\mathbf{s}_{\mathrm{R}} = \mathbf{M}_{\mathrm{R}}\mathbf{s},
 \end{equation*}
-where $  M_{\mathrm{R}} $ is identity matrix $M_{\mathbb{R}} \in R ^ { |I^R| \times N}$ ($ |I^R|$ as length of subset) \cite{Adler2012}.
+where $  M_{\mathrm{R}} $ is mask matrix $\mathbf{M}_{R} \in \mathbb{R} ^ { |I^R| \times N}$ ($ |I^R|$ as length of subset), selecting rows frow indentity matrix $ \mathbf{M} $\cite{Adler2012}.
 
 
 
@@ -107,7 +107,7 @@ where $  M_{\mathrm{R}} $ is identity matrix $M_{\mathbb{R}} \in R ^ { |I^R| \ti
 
 We define our task as sparsity-based problem, minimizing $ \ell_0 $ norm of signal $ \mathbf{s} $.
 However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
-The closest redefinition is to use the l1 norm as follows:
+The closest redefinition is to use the $ \ell_1 $ norm as follows:
 
 \begin{equation*}
  \mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma, \tag{1}
@@ -117,12 +117,15 @@ Set $ \Gamma $ is defined as follows:
 
 \begin{equation*} \Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace, \tag{2}\end{equation*}
 
+One of the suitable solutions is DR algorithm in \ref{alg:DRA_c} \cite{Mokry2020}.
+
 \begin{algorithm}
 	\caption{Douglas-Rachford algorithm -- model with frequency coefficients}
 	\begin{algorithmic}[1]\label{alg:DRA_c}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE in
+		\REQUIRE  $ \gamma > 0 $, $ \delta  \in (0,1)$ ,
+		
 		\FOR {$n = 0, 1, \dots$}
 		\STATE $\mathbf{\widetilde{c}}_n=\operatorname{proj}_{\Gamma}(\mathbf{c}_n) $ 
 		\STATE $ \mathbf{c}_{n+1} = \mathbf{c}_n + \lambda \left( \operatorname{soft}_{\gamma}\left(2\mathbf{\widetilde{c}}_n-\mathbf{c}_n \right)-\mathbf{\widetilde{c}}_n\right)$
@@ -130,28 +133,34 @@ Set $ \Gamma $ is defined as follows:
 		\RETURN $D(\operatorname{proj}_{\Gamma}(\mathbf{c}_n))$ 
 	\end{algorithmic} 
 \end{algorithm}
-In \ref{alg:DRA_c} with $ \operatorname{proj}_{\Gamma} $ is projection onto convex set $ \Gamma $.
+Operator $ \operatorname{proj}_{\Gamma}(arg)$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}(arg)$ is soft thresholding operator.
+Both are proximal operators.
+
+The condition   $ \delta  \in (0,1)$ is strict for convergence of solution \cite{Combettes2010}.
 
 
 \subsection{SAMPLES as INPUT APPROACH}\label{subsec:timecoef}
 
+Second approach uses time domain samples as input.
+It has mainly computational advice against first approach, in algorithm are less time-frequency transformations (e.g less multiplication operations per iteration).
+Problem is, 
+that we do not know proximal operator of $ \ell_1 $ norm after analysis, but we can use approximal operator \cite{Mokry2021}.
+
+The main minimazation task reformulates as:
 \begin{equation*}
-	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ D\mathbf {s}\in \Gamma, \tag{3}
+	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ \mathbf {s}\in \Gamma, \tag{3}
 \end{equation*} 
-
+and $ \Gamma $ is similarly as in  (eqref2) % Tags???????  
 \begin{equation*}
-	\Gamma = \lbrace \mathbf {z}\in \mathbb {C}^L\mid M_{\mathrm{R}}\mathbf {z}=M_{\mathrm{R}}\mathbf {y}\rbrace, \tag{4} 
+	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace. \tag{4} 
 \end{equation*}
-
-
-
-
+Afterwards our algorithm resolves to following: 
 \begin{algorithm}
 	\caption{Douglas-Rachford algorithm -- model with time coefficients}
 	\begin{algorithmic}[1]
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE $ \lambda > 0 $, $ \gamma>0 $, $ x_0 \in \mathbb{C}^{N} $
+		\REQUIRE $ \lambda > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $
 		\FOR {$n = 0, 1, \dots$}
 		\STATE $\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
 		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda \left( D\left(\operatorname{soft}_{\gamma}\left(A\left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n\right) \right)\right) -\mathbf{\widetilde{x}}_n\right)$
@@ -160,7 +169,7 @@ In \ref{alg:DRA_c} with $ \operatorname{proj}_{\Gamma} $ is projection onto conv
 	\end{algorithmic} 
 \end{algorithm}
 
-Projection, in this case, is simply replacing reconstructed samples with samples considered reliable.
+Projection, in this case, is simply replacing reconstructed samples in positions considered reliable.
 
 \section{Plug-and-Play inpainting} \label{sec:plugaandplay}
 
