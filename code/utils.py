@@ -56,4 +56,11 @@ def soft_thresh(signal, gamma):
 def projection_time_domain(signal, reference, mask):
     signal_proj = signal.clone()
     signal_proj[mask] = reference[mask]
-    return signal_proj
+    return 0.8*signal_proj + 0.2*signal
+
+
+def projection_time_domain_mix(signal, reference, mask, proj_percent):
+    signal_proj = signal.clone()
+    signal_proj[mask] = reference[mask]
+    return (proj_percent)*signal_proj + (1-proj_percent)*signal
+
