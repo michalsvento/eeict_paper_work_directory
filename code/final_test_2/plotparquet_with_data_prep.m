@@ -1,4 +1,6 @@
 clear
+close
+clc
 
 % T = parquetread('dra_speech_total.parquet');
 
@@ -40,27 +42,34 @@ legend_titles = {'DRA 50', 'Denoise','DRA 500'};
 
 
 
-% plot
 figure
-tiledlayout('flow')
+tiledlayout('flow','GridSize',[1,3],'TileSpacing','tight')
 
 nexttile
-bar(fraction, stoi)
+b = bar(fraction, stoi);
 xlabel('proj fraction')
 ylabel('STOI')
 legend(legend_titles, 'location', 'southeast')
 
 hold on
-
-% er = errorbar(x',stoi,stoi_std);                             
-% er.LineStyle = 'none';  
-% hold off
+[ngroups,nbars] = size(stoi);
+x = nan(nbars, ngroups);
+for i = 1:nbars
+    x(i,:) = b(i).XEndPoints;
+end
+errorbar(x',stoi,stoi_std,'k','linestyle','none','HandleVisibility','off');                             
+hold off
 
 nexttile
 bar(fraction, pesq)
 xlabel('proj fraction')
 ylabel('PESQ')
 legend(legend_titles, 'location', 'southeast')
+hold on
+errorbar(x',pesq,pesq_std,'k','linestyle','none','HandleVisibility','off');                             
+hold off
+
+
 
 nexttile
 bar(fraction, snr)
@@ -69,22 +78,26 @@ ylabel('SNR (dB)')
 lims = ylim;
 ylim([max(lims(1), snrcrop), Inf])
 legend(legend_titles, 'location', 'southeast')
+hold on
+errorbar(x',snr,snr_std,'k','linestyle','none','HandleVisibility','off');                             
+hold off
 
-nexttile
-bar(fraction, snr_gap)
-xlabel('proj fraction')
-ylabel('SNR in gap (dB)')
-lims = ylim;
-ylim([max(lims(1), snrcrop), Inf])
-legend(legend_titles, 'location', 'southeast')
 
-nexttile
-bar(fraction, snr_max)
-xlabel('proj fraction')
-ylabel('SNR max (dB)')
-lims = ylim;
-ylim([max(lims(1), snrcrop), Inf])
-legend(legend_titles, 'location', 'southeast')
+% nexttile
+% bar(fraction, snr_gap)
+% xlabel('proj fraction')
+% ylabel('SNR in gap (dB)')
+% lims = ylim;
+% ylim([max(lims(1), snrcrop), Inf])
+% legend(legend_titles, 'location', 'southeast')
+% 
+% nexttile
+% bar(fraction, snr_max)
+% xlabel('proj fraction')
+% ylabel('SNR max (dB)')
+% lims = ylim;
+% ylim([max(lims(1), snrcrop), Inf])
+% legend(legend_titles, 'location', 'southeast')
 
 function arr = column2array(col)
 

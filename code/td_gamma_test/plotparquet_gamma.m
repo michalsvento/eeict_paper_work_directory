@@ -17,41 +17,41 @@ snr_max = column2array(T(:, 'SNR_MAX'));
 figure
 tiledlayout('flow')
 
-nexttile
-bar(fraction, stoi)
-xlabel('proj fraction')
-ylabel('STOI')
-legend(legcell, 'location', 'southeast')
+% nexttile
+% bar(fraction, stoi,1.0)
+% xlabel('proj fraction')
+% ylabel('STOI')
+% legend(legcell, 'location', 'southeast')
 
 nexttile
-bar(fraction, pesq)
+bar(fraction, pesq,1.0)
 xlabel('proj fraction')
 ylabel('PESQ')
 legend(legcell, 'location', 'southeast')
 
-nexttile
-bar(fraction, snr)
-xlabel('proj fraction')
-ylabel('SNR (dB)')
-lims = ylim;
-ylim([max(lims(1), snrcrop), Inf])
-legend(legcell, 'location', 'southeast')
-
-nexttile
-bar(fraction, snr_gap)
-xlabel('proj fraction')
-ylabel('SNR in gap (dB)')
-lims = ylim;
-ylim([max(lims(1), snrcrop), Inf])
-legend(legcell, 'location', 'southeast')
-
-nexttile
-bar(fraction, snr_max)
-xlabel('proj fraction')
-ylabel('SNR max (dB)')
-lims = ylim;
-ylim([max(lims(1), snrcrop), Inf])
-legend(legcell, 'location', 'southeast')
+% nexttile
+% bar(fraction, snr)
+% xlabel('proj fraction')
+% ylabel('SNR (dB)')
+% lims = ylim;
+% ylim([max(lims(1), snrcrop), Inf])
+% legend(legcell, 'location', 'southeast')
+% 
+% nexttile
+% bar(fraction, snr_gap)
+% xlabel('proj fraction')
+% ylabel('SNR in gap (dB)')
+% lims = ylim;
+% ylim([max(lims(1), snrcrop), Inf])
+% legend(legcell, 'location', 'southeast')
+% 
+% nexttile
+% bar(fraction, snr_max)
+% xlabel('proj fraction')
+% ylabel('SNR max (dB)')
+% lims = ylim;
+% ylim([max(lims(1), snrcrop), Inf])
+% legend(legcell, 'location', 'southeast')
 
 function arr = column2array(col)
 

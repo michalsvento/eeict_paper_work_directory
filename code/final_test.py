@@ -40,14 +40,14 @@ dra_par = {
     "n_ite": 50,
     "lambda": 1,
     "lambda_n": 1,
-    "gamma": 0.10,
+    "gamma": 0.01,
     "eta": 0.5
 }
 
 
 session_date = datetime.date.today()
 
-dir_name_vis = 'final_test_1'
+dir_name_vis = 'final_test_2'
 print('Folder exists')if os.path.isdir(dir_name_vis) else os.mkdir(dir_name_vis)
 
 
@@ -312,7 +312,7 @@ for no_sig in range(len(clean_files)):
             x_prev = xi.clone()
             x =x + dra_par["lambda"]*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi)  #Denoiser -> soft_thresh
             normx500[i] = l1norm(tfa.dgt(x))
-            dra_par["lambda"] =  dra_par["lambda"] * 0.9
+            #dra_par["lambda"] =  dra_par["lambda"] * 0.9
         
         final_x = projection_time_domain_mix(x.float(),ref,mask,mix_fraction[lam])
         

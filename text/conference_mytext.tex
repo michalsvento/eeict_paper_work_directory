@@ -137,16 +137,17 @@ In words, $\mathbf{M}_{\mathrm{R}}\mathbf{s}$ represents choosing the samples fr
 It is natural to define the set of signals fitting the observation as
 \begin{equation}
 	\label{eq:Gamma}
-	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid \mathbf{M}_{\mathrm{R}}\mathbf {y}=\mathbf{M}_{\mathrm{R}}\mathbf {s}\rbrace.
+	\Gamma = \lbrace \mathbf{x}\in \mathbb {R}^L\mid \mathbf{M}_{\mathrm{R}}\mathbf{x}=\mathbf{M}_{\mathrm{R}}\mathbf {s}\rbrace.
 \end{equation}
 In the noise-less case, we would search for a suitable signal in $\Gamma$.
-On the other hand, when the observed samples are distorted by noise, we only require the solution \todo{(zavedeme si nějaké značení pro výsledný signál?)} to be close to the set $\Gamma$.
-\todo{V algoritmech máme proměnnou $\mathbf{x}$ pro signály, tudíž bych ji asi používal už odsud namísto $\mathbf{y}$.}
+On the other hand, when the observed samples are distorted by noise, we only require the solution $\mathbf{x}$ to be close to the set $\Gamma$.
+%\todo{V algoritmech máme proměnnou $\mathbf{x}$ pro signály, tudíž bych ji asi používal už odsud namísto $\mathbf{y}$.}
 
-\subsection{COEFFS INPUT Aprroach -- WORK NAME}\label{subsec:freqcoef}
-\todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
+\subsection{Synthesis-based formulation}\label{subsec:freqcoef}
+%\todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
 
-We define our task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the time-frequency (TF) \todo{(možná hned používat Gabor coefficients, ať dále dává smysl termín Gabor transform)} coefficients of the signal $ \mathbf{s} $.
+We define our task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the Gabor coefficients.
+%\todo{(možná hned používat Gabor coefficients, ať dále dává smysl termín Gabor transform)} coefficients of the signal $ \mathbf{s} $.
 However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
 The closest redefinition is to use the $ \ell_1 $ norm as follows:
 
@@ -154,9 +155,9 @@ The closest redefinition is to use the $ \ell_1 $ norm as follows:
 	\label{eq:synthesis.gamma}
 	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma
 \end{equation} 
-where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assume $ A $, $ D = A^* $ and therefore the reconstructed signal corresponds to $ \mathbf {y} \approx  D\mathbf {c}$.
-\todo{Je správně $ \mathbf {y} \approx  D\mathbf {c}$, nebo $ \mathbf {y} =  D\mathbf {c}$?}
-\todo{Dal bych asi i $A$ a $D$ jako matice, i když není nutno.}
+where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform) and we assume $ \mathbf{A} $, $ \mathbf{D} = \mathbf{A}^* $ and therefore the reconstructed signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
+\todo{Je správně $ \mathbf {y} \approx \mathbf{D}\mathbf {c}$, nebo $ \mathbf {y} =  \mathbf{D}\mathbf {c}$? : MŠ: myslím, že rovná sa je správne.}
+%\todo{Dal bych asi i $A$ a $\mathbf{D}$ jako matice, i když není nutno.}
 % Set $ \Gamma $ is defined as follows:
 
 %\begin{equation}
@@ -198,7 +199,7 @@ Both \eqref{eq:synthesis.gamma} and \eqref{eq:synthesis.dist} could be solved us
 However, the algorithms use the Gabor coefficients as the main variable, which makes the incorporation of a denoiser (working with a signal as the input) problematic.
 
 
-\subsection{SAMPLES as INPUT APPROACH}\label{subsec:timecoef}
+\subsection{Analysis-based formulation}\label{subsec:timecoef}
 
 Second approach uses time domain samples as input.
 It has mainly computational advice against first approach, in algorithm are less time-frequency transformations (e.g less multiplication operations per iteration).
@@ -208,12 +209,12 @@ that we do not know proximal operator of $ \ell_1 $ norm after analysis, but we 
 The main minimazation task \eqref{eq:analysis.gamma} is reformulated as,
 \begin{equation}
 	\label{eq:analysis.gamma}
-	\mathop {\operatorname{arg \, min}}_\mathbf {y}\Vert A \mathbf {y}\Vert _1 \quad \text{s.t.}\ \mathbf {y}\in \Gamma,
+	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 \quad \text{s.t.}\ \mathbf {x}\in \Gamma,
 \end{equation}
 or, in the denoising case,
 \begin{equation}
 	\label{eq:analysis.dist}
-	\mathop {\operatorname{arg \, min}}_\mathbf {y}\Vert A \mathbf {y}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {y} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
+	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {y}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {x} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
 \end{equation} 
 %and $ \Gamma $ is similarly as in \eqref{eq:Gamma} % Tags???????  
 %\todo{Tuto rovnici tu máme dvakrát.}
@@ -229,12 +230,12 @@ The algorithm is summarized in Alg.\,\ref{alg:DRA}.
 	\begin{algorithmic}[1]\label{alg:DRA}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
+		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{\widetilde{x}}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
 		\FOR {$n = 0, 1, \dots$}
-		\STATE $\mathbf{\widetilde{x}}_n= (1-\beta)\mathbf{x}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
-		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda_n \left( D\left(\operatorname{soft}_{\gamma}\left(A\left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n\right) \right)\right) -\mathbf{\widetilde{x}}_n\right)$
+		\STATE $\mathbf{x}_n= (1-\beta)\mathbf{\widetilde{x}}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{\widetilde{x}}_n) $ 
+		\STATE $ \mathbf{\widetilde{x}}_{n+1} = \mathbf{x}_n + \lambda_n \left( \mathbf{D}\left(\operatorname{soft}_{\gamma}\left(\mathbf{A}\left(2\mathbf{x}_n-\mathbf{\widetilde{x}}_n\right) \right)\right) -\mathbf{x}_n\right)$
 		\ENDFOR
-		\RETURN $\mathbf{\widetilde{x}}_n$ \todo{Možná vyměnit značení $\mathbf{\widetilde{x}}$ a $\mathbf{x}$?}
+		\RETURN $\mathbf{x}_n$ %\todo{DONE:Možná vyměnit značení $\mathbf{\widetilde{x}}$ a $\mathbf{x}$?}
 	\end{algorithmic} 
 \end{algorithm}
 
@@ -242,37 +243,46 @@ The operator $ \operatorname{proj}_{\Gamma}$ is projection onto convex set $ \Ga
 Projection, in this case, means replacing reconstructed samples in positions considered reliable by the observed samples.
 The parameter $\beta$ allows to differentiate between simple inpainting \eqref{eq:analysis.gamma} and the joint problem \eqref{eq:analysis.dist}.
 The case of $\beta = 1$ corresponds to performing projection in the update, in line with \cite{Mokry2020}.
-For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the so-called proximal operator of $f(\mathbf{y}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {y} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
+For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the so-called proximal operator of $f(\mathbf{x}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {x} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
 
 
 \section{Plug-and-Play inpainting} \label{sec:plugaandplay}
 
-\subsection{general algorithm}
+The Plug-and-Play method was proposed in paper \cite{Chan2016} on image data.
+The main idea is replace proximal operator with denoiser without any demands from minimizing algorithm (the origin of Plug-and-Play).
+We rewrite this task to solve our audio inpainting problem using DRA with approximal operator (analysis-based) \ref{alg:DRA}.
+We reformulate the algorithm in \ref{alg:pnp}:
+
 
 \begin{algorithm}
 	\caption{Plug-and-Play DRA}
 	\begin{algorithmic}[1]\label{alg:pnp}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
+		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{\widetilde{x}}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
 		\FOR {$n = 0, 1, \dots$}
 		\STATE %$\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
-		$\mathbf{\widetilde{x}}_n= (1-\beta)\mathbf{x}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
-		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda_n \left( \mathcal{D} \left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n \right)-\mathbf{\widetilde{x}}_n\right)$
+		$\mathbf{x}_n= (1-\beta)\mathbf{\widetilde{x}}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{\widetilde{x}}_n) $ 
+		\STATE $ \mathbf{\widetilde{x}}_{n+1} = \mathbf{\widetilde{x}}_n + \lambda_n \left( \mathcal{D} \left(2\mathbf{x}_n-\mathbf{\widetilde{x}}_n \right)-\mathbf{x}_n\right)$
 		\ENDFOR
-		\RETURN $\mathbf{\widetilde{x}}_n$ 
+		\RETURN $\mathbf{x}_n$ 
 	\end{algorithmic} 
 \end{algorithm}
-\subsection{choice of denoiser}
 
 \subsection{Denoisers}
 
+The requirements for our denoiser $\mathcal{D}$ are primarily good results in subjective metrics.
+They will be discussed more in \ref{subsec:metrics}.
+Implementation of our denoiser is based on mayavoz toolkit \cite{Shahul2023}.
+This tool provides us simple use of learned model with downloadable checkpoints.
+Our selection is WaveUnet learned on Valentini dateset \cite{ValentiniBotinhao2017}(variant with 28 speakers).
+
 \section{Testing data and evaluation}\label{sec:eval}
 
-As was introduced before, we use discrete Gabor transform as analysis operator $A$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{\textup{FFT}} = 1024$.
-To satisfy the Parseval tight frame condition, the synthesis operator $D$ is configured the same. \todo{Citácia}.
+As was introduced before, we use discrete Gabor transform as analysis operator $\mathbf{A}$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{\textup{FFT}} = 1024$.
+To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D}$ is configured the same \cite{Mokry2020}.
 
-\subsection{Metrics}
+\subsection{Metrics}\label{subsec:metrics}
 
 %\todo{SNR,PESQ,STOI}
 
@@ -290,17 +300,22 @@ STOI measures correlation of two signals on a scale from $0$ to $1$.
 \subsection{Choice of soft threshold parameter}\label{subsec:soft_thresh}
 
 For reduction of variable parameters in comparison test between conventional and deep learning approach, we decided to fix the $\gamma$ in DRA.
-We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1, 1\}$.
-\todo{Popis výberu parametru gamma na základe testu -- Graf, Prečo sme vybrali konkrétne gamma -DISKUSIA}
+We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1\}$.
+Results are shown in \ref{fig:gammatest}.
+%\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
 
-\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
-
-\begin{figure}
-	\caption{Úzký obrázek.}
+\begin{figure}[h]
+	\includegraphics[width=1\linewidth]{figures/gamma_test}
+	\caption{PESQ metric results made to choose the best $\gamma$ in DRA for testing with multiple audio files.
+	The results in another metrics (STOI,SNR) are similar.
+	Label \textit{proj fraction} refers to ratio $/beta$ from \ref{alg:DRA}.}
+	\label{fig:gammatest}
 \end{figure}
 
+The best results were obtain with $\gamma=0.01$, which has shown succesful mostly with ascending ratio of projected signal.
+
 \subsection{Dataset and test setup}
-We choose randomly 10 \todo{neviem či náhodne (zoradil som podľa veľkosti a vybral "primerane" dlhé) a ak zvýšime ešte počet nahrávok tak sa to zmení} audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (dataset is split to two subsets: clean and noisy).
+We choose randomly 10 audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (dataset is split to two subsets: clean and noisy).
 We use clean sample as reference and noise as input to algorithm (clean with addition of noise, which is required to supress).
 As a simulation of inpainting task, we use uniformly distributed mask of zero and ones, where partition of 0 is $40\%$,
 e.g $60\%$ of indices is for reliable samples.
@@ -308,23 +323,25 @@ Then this mask is applied as dot product with noise signal.
 
 We choose $\gamma = 0.1$ as mentioned in \ref{subsec:soft_thresh}.
 Simulation is split to three variants: two conventional and one with deep learning.
-Traditional are DRA with same parameters except number of iterations: $50$ and $500$.
-DRA with denoiser proposed in algorithm \todo{referencia na algo} is deep learned variant, we test $50$ iterations,
+Traditional are DRA \ref{alg:DRA} with same parameters except number of iterations: $50$ and $500$.
+DRA with denoiser proposed in algorithm \ref{alg:pnp} is deep learned variant, we test $50$ iterations,
 as in shorter conventional method.
-In every algorithm is $\lambda$ scaled with coefficent \todo{nejaká alfa? podľa algoritmu to isté značenie.} each iteration.
-We set \todo{$\alpha$} to $0.9$.
-
+In every algorithm is $\lambda$ scaled with coefficent $\alpha$ \todo{(MŠ: zvolil som alfu, ale v algoritme nie je vôbec. Je potrebné ju do algoritmov pridať?)} each iteration.
+We set $\alpha$ to $0.9$ in algorithms with $50$ iterations and $1$ for DRA $500$ iterations, because the effect of $\lambda$ after $500$ divisions will be negligible.
 
 
 
 \subsection{Results of tests}
 
-\todo{Na diskusiu}
 
-\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
+
+%\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
+\todo{MŠ-Graf sa ešte doplní lepší, musím vymyslieť ešte ako.}
 
 \begin{figure*}
+	\includegraphics[width=\linewidth]{figures/final2_with_errors}
 	\caption{Široký obrázek.}
+	\label{fig:final2witherrors}
 \end{figure*}
 
 \section{Conclusion}
