@@ -262,6 +262,13 @@ The higher SNR means better reconstruction.
 For reduction of variable parameters in comparison test between conventional and deep learning approach, we decided to fix the $\gamma$ in DRA.
 We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1, 1\}$.
 \todo{Popis výberu parametru gamma na základe testu -- Graf, Prečo sme vybrali konkrétne gamma -DISKUSIA}
+
+\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
+
+\begin{figure}
+	\caption{Úzký obrázek.}
+\end{figure}
+
 \subsection{Dataset and test setup}
 We choose randomly 10 \todo{neviem či náhodne (zoradil som podľa veľkosti a vybral "primerane" dlhé) a ak zvýšime ešte počet nahrávok tak sa to zmení} audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (dataset is split to two subsets: clean and noisy).
 We use clean sample as reference and noise as input to algorithm (clean with addition of noise, which is required to supress).
@@ -284,6 +291,11 @@ We set \todo{$\alpha$} to $0.9$.
 
 \todo{Na diskusiu}
 
+\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
+
+\begin{figure*}
+	\caption{Široký obrázek.}
+\end{figure*}
 
 \section{Conclusion}
 \label{sec:conclusion}
