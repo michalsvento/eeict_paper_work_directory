@@ -204,9 +204,10 @@ However, the algorithms use the Gabor coefficients as the main variable, which m
 \subsection{Analysis-based formulation}\label{subsec:timecoef}
 
 Second approach uses time domain samples as input.
-It has mainly computational advice against first approach, in algorithm are less time-frequency transformations (e.g less multiplication operations per iteration).
-\todo{OM: tato první věta není úplně pravda, protože v iteraci algoritmu \ref{alg:DRA} pořád máme jednu analýzu a jednu syntézu, stejně jako by tomu bylo v případě syntetizujícím (tam by se ty operátory vyskytovaly uvnitř projekce).}
-The problem is 
+It has mainly computational advice against first approach, signal is typically one dimensional vector, while Gabor coefficients are matrices (e.g less multiplication operations per iteration).
+%\todo{OM: tato první věta není úplně pravda, protože v iteraci algoritmu \ref{alg:DRA} pořád máme jednu analýzu a jednu syntézu, stejně jako by tomu bylo v případě syntetizujícím (tam by se ty operátory vyskytovaly uvnitř projekce).}
+\todo{MŠ: Možno nejako takto?}
+The problem is,
 that we do not know proximal operator of $ \ell_1 $-norm after analysis, which is essential for the DRA.
 However, we can resort to the so-called approximal operator without significant loss of reconstruction quality \cite{Mokry2021}.
 
@@ -309,16 +310,15 @@ STOI measures correlation of two signals on a scale from $0$ to $1$.
 To reduce the number of variables in the comparison between the conventional and plug-and-play approach, we decided to fix the $\gamma$ parameter in DRA.
 We examined DRA with values of $\gamma\in\{0.001, 0.01,0.1\}$.
 At the same time, we examined the effect of the trade-off parameter $\beta$ in Alg.\,\ref{alg:DRA}, since it has a significant effect on the results in the case of signal denoising. 
-The results are shown in \ref{fig:gammatest} for a single speech signal.
 %\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
-\todo{OM: Tady nám chybí, jaká rekonstrukční úloha vlastně byla řešena.
-Buď bych posunul část C o jedno výše, ať jsou všechny experimenty až za ní.
-Nebo, pokud se jednalo o jiný signál s jiným šumem (což bych řekl že není zásadní problém), tak by to tu mělo být zvlášť popsané.}
-
+%\todo{OM: Tady nám chybí, jaká rekonstrukční úloha vlastně byla řešena.Buď bych posunul část C o jedno výše, ať jsou všechny experimenty až za ní. Nebo, pokud se jednalo o jiný signál s jiným šumem (což bych řekl že není zásadní problém), tak by to tu mělo být zvlášť popsané.}
+Tested signals are pair of clean and noise signal with random drop-out of $40\%$ samples from dataset \cite{ValentiniBotinhao2017}.
+Parameters of DRA were: $\lambda=0.1$, $50$ iterations .
+The results are shown in \ref{fig:gammatest}:
 
 \begin{figure}[h]
 	\includegraphics[width=1\linewidth]{figures/gamma_test}
-	\caption{PESQ metric results made to choose the best value of $\gamma$ in DRA for testing with multiple audio files (these values are shown in the legend). \todo{Dopsal bych to přímo do obrázku, pokud to půjde, že $\gamma=\dots$.}
+	\caption{PESQ metric results made to choose the best value of $\gamma$ in DRA for testing with multiple audio files (these values are shown in the legend). %\todo{Dopsal bych to přímo do obrázku, pokud to půjde, že $\gamma=\dots$.}
 	The results in terms of STOI and SNR were principally the same.
 	The label \textit{proj fraction} refers to parameter $\beta$ from Alg.\,\ref{alg:DRA}.}
 	\label{fig:gammatest}
@@ -328,7 +328,8 @@ The best results were obtain with $\gamma=0.01$, which was the most successful, 
 
 \subsection{Dataset and test setup}
 We have chosen randomly 10 audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (the dataset is split to two subsets: clean and noisy).
-\todo{Jde najít nebo spočítat, jaká je zhruba úroveň šumu u našich vzorků? Spočítat by to jít mohlo, prostě SNR pro clean versus noisy-clean\dots}
+%\todo{Jde najít nebo spočítat, jaká je zhruba úroveň šumu u našich vzorků? Spočítat by to jít mohlo, prostě SNR pro clean versus noisy-clean\dots}
+The average SNR of our files is approximately $11$ dB.
 For each signal, we used the clean sample as a reference and its noisy variant as the input to the algorithm. % (clean with addition of noise, which is required to supress).
 As a simulation of inpainting task, we used random drop-out of % uniformly distributed mask of zero and ones, where partition of 0 is
 $40\%$ of samples as used in \cite{Mokry2021}.
@@ -343,7 +344,20 @@ as in the shorter conventional method.
 In all the algorithms, the initial $\lambda_0$ was set to $0.1$. \todo{Zkontrolovat, kdybychom měnili.}
 For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = \lambda_0$.
 In the case of the plug-and-play version \ref{alg:pnp}, and the reference DRA \ref{alg:DRA} with 50 iterations, the parameter was set to decrease in every iteration as $\lambda_{n+1} = 0.9\cdot\lambda_n$.
-\todo{Máme nějaké historické obrázky (nebo můžeme znova pustit nějaký starý test), který by ilustroval, proč potřebujeme tu lambdu snižovat? Nebo to tu jen řekneme, že se jinak kvalita zhoršovala s postupujícími iteracemi? V tomto místě by to totiž chtělo vysvětlit, proč to tak bylo nastaveno.}
+%\todo{Máme nějaké historické obrázky (nebo můžeme znova pustit nějaký starý test), který by ilustroval, proč potřebujeme tu lambdu snižovat? Nebo to tu jen řekneme, že se jinak kvalita zhoršovala s postupujícími iteracemi? V tomto místě by to totiž chtělo vysvětlit, proč to tak bylo nastaveno.}
+The intention for decreasing $\lambda$ is proper from figure \ref{fig:lamdadesc}.
+If we fix $\lambda$, SNR decreased and converge to wrong point.
+If $\lambda$ decreases, we minimize the impact of soft threshold operator.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{figures/lamda_desc}
+	\caption{SNR from DRA tested for 50 iterations between static and decreasing variant for $\lambda \in \{0.1,1 \}$.
+	Tested signals are same as in experiment with $\gamma$
+	\todo{Predsa len rozmýšlam pustiť ten algoritmus odznova s $\gamma=1$}}
+	\label{fig:lamdadesc}
+\end{figure}
+
 %In every algorithm is $\lambda$ scaled with coefficent $\alpha$
 %\todo{(MŠ: zvolil som alfu, ale v algoritme nie je vôbec. Je potrebné ju do algoritmov pridať?)}
 %\todo{OM: $\alpha$ se mi hodilo výše v rovnici \eqref{eq:analysis.dist}, zde jsem to zkusil přepsat bez potřeby nějak to označit}
@@ -359,10 +373,16 @@ In the case of the plug-and-play version \ref{alg:pnp}, and the reference DRA \r
 %\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
 \todo{MŠ: Graf sa ešte doplní lepší, musím vymyslieť ešte ako.}
 
-\todo{OM: Možná místo Denoise bych používal Plug-and-play.}
+%\todo{OM: Možná místo Denoise bych používal Plug-and-play.}
 
-\todo{OM: Na co bych se tak zaměřil v diskuzi výsledků: Plug-and-play je méně citlivý na volbu poměru v projekci a v případě srovnání s DRA \ref{alg:DRA} se stejnými parametry (50 iterací, klesající $\lambda_n$) může dosáhnout epších výsledků.
-Ve srovnání s DRA s 500 iteracemi máme nižší variabilitu, ovšem globálně, při možnosti optimalizovat paramtry jako je právě míchací poměr $\beta$, jsou naše výsledky horší.}
+%\todo{OM: Na co bych se tak zaměřil v diskuzi výsledků: Plug-and-play je méně citlivý na volbu poměru v projekci a v případě srovnání s DRA \ref{alg:DRA} se stejnými parametry (50 iterací, klesající $\lambda_n$) může dosáhnout epších výsledků.Ve srovnání s DRA s 500 iteracemi máme nižší variabilitu, ovšem globálně, při možnosti optimalizovat paramtry jako je právě míchací poměr $\beta$, jsou naše výsledky horší.}
+
+Graphs with STOI, PESQ and SNR are presented in figure \ref{fig:final2witherrors}.
+We see that Plug-and-Play is less sensitive to fraction of projection with compare to DRA,
+and in comparison with DRA (50 iterations, decreasing $\lambda_n$) reaches better result.
+DRA with 500 iterations has worse variability, anyway globally, optimizing parameters as fraction ratio $\beta$ are Plug-and-Play results worse.
+
+
 
 \begin{figure*}
 	\includegraphics[width=\linewidth]{figures/final2_with_errors}
@@ -372,6 +392,8 @@ Ve srovnání s DRA s 500 iteracemi máme nižší variabilitu, ovšem globáln�
 
 \section{Conclusion}
 \label{sec:conclusion}
+
+\todo{Záver a Abstrakt TODO ráno}
 
 \todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
 

@@ -3,7 +3,7 @@ clear
 T = parquetread('dra_gamma_test.parquet');
 
 snrcrop = -10; % set -Inf if no cropping is required
-legcell = {'0.001', '0.01', '0.1'};
+legcell = {'\gamma = 0.001', '\gamma = 0.01', '\gamma = 0.1'};
 
 % parse data
 fraction = column2array(T(:, 'proj_frac'));
