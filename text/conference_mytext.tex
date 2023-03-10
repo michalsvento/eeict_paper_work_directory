@@ -1,5 +1,5 @@
 \documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+% \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -7,7 +7,6 @@
 \usepackage{algorithm}
 \usepackage{graphicx}
 \usepackage{textcomp}
-\usepackage{xcolor}
 \usepackage{hyperref}
 
 \usepackage{xcolor}
@@ -52,7 +51,8 @@
 \maketitle
 
 \begin{abstract}
-\todo{Plug-and-play má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích (to je zvýšení toho proj faktoru) v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
+\todo{Navrhujeme plug-and-play variantu proximálního algoritmu Douglas--Rachford pro audio inpainting v situaci, kdy i pozoraované vzorky jsou rušeny šumem.
+Demonstrujeme, že plug-and-play přístup má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -89,7 +89,7 @@ Furthermore, neural networks are usually trained for a specific problem, lacking
 
 As a compromise between the conventional and learning-based methods, 
 % In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
-the Plug-and-Play method for image restoration was introduced in \cite{Chan2016},
+the Plug-and-Play method for image restoration was introduced in \cite{Venkatakrishnan2013} and subsequently studied in \cite{Chan2016},
 where part of each iteration of an optimization algorithm is replaced by a (learned) denoiser.
 % The idea of a hybrid model,
 % combining conventional approach (convex minimization) with deep learning,
@@ -125,44 +125,45 @@ Second, using samples in time domain is described in subsection \ref{subsec:time
 \subsection{Task formulation}
 
 We consider column vector $ \mathbf{s} \in \mathbb{R}^{N} $ as our observed damaged single-channel signal of length $ N $.
-We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which has two disjunctive subsets: $ I^M $ for missing positions and $ I^R $ stands for reliable positions.
-Usually, samples $ \mathbf{s}(I^R) $ are considered reliable (undamaged) and $ \mathbf{s}(I^M) $ are samples, which we are looking for.
+We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which has two disjunctive subsets: $I_\textup{M} $ for missing positions and $ I_\textup{R} $ stands for reliable positions.
+Usually, samples $ \mathbf{s}(I_\textup{R}) $ are considered reliable (undamaged) and $ \mathbf{s}(I_\textup{M}) $ are samples, which we are looking for.
 It is common to rewrite it in matrix form:
 \begin{equation*}
-	\mathbf{s}_{\mathrm{R}} = \mathbf{M}_{\mathrm{R}}\mathbf{s},
+	\mathbf{s}_{\textup{R}} = \mathbf{M}_{\textup{R}}\mathbf{s},
 \end{equation*}
-where $\mathbf{M}_{R} \in \mathbb{R} ^ { |I^R| \times N}$ ($ |I^R|$ denotes the number of indices in the subset $I^R$) is the mask matrix, selecting rows from indentity matrix corresponding to the indices in $I^R$ \cite{Adler2012}.
-In words, $\mathbf{M}_{\mathrm{R}}\mathbf{s}$ represents choosing the samples from $\mathbf{s}$ on positions $I^R$.
+where $\mathbf{M}_\textup{R} \in \mathbb{R} ^ { |I_\textup{R}| \times N}$, with $ |I_\textup{R}|$ denotes the number of indices in the subset $I_\textup{R}$, is the mask matrix, selecting rows from identity matrix corresponding to the indices in $I_\textup{R}$ \cite{Adler2012}.
+In words, $\mathbf{M}_{\textup{R}}\mathbf{s}$ represents choosing the samples from $\mathbf{s}$ on positions $I_\textup{R}$.
 
-It is natural to define the set of signals fitting the observation as
+It is convenient to define the set of signals fitting the observation as
 \begin{equation}
 	\label{eq:Gamma}
-	\Gamma = \lbrace \mathbf{x}\in \mathbb {R}^L\mid \mathbf{M}_{\mathrm{R}}\mathbf{x}=\mathbf{M}_{\mathrm{R}}\mathbf {s}\rbrace.
+	\Gamma = \lbrace \mathbf{x}\in \mathbb {R}^L\mid \mathbf{M}_{\textup{R}}\mathbf{x}=\mathbf{M}_{\textup{R}}\mathbf {s}\rbrace.
 \end{equation}
 In the noise-less case, we would search for a suitable signal in $\Gamma$.
-On the other hand, when the observed samples are distorted by noise, we only require the solution $\mathbf{x}$ to be close to the set $\Gamma$.
+On the other hand, when the observed samples are distorted by noise, we only require the solution $\mathbf{x}$ to be close to $\Gamma$.
 %\todo{V algoritmech máme proměnnou $\mathbf{x}$ pro signály, tudíž bych ji asi používal už odsud namísto $\mathbf{y}$.}
 
 \subsection{Synthesis-based formulation}\label{subsec:freqcoef}
 %\todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
 
-We define our task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the Gabor coefficients.
+We define the task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the Gabor coefficients, i.e., the number of non-zero coefficients of the time-frequency representation of the signal.
 %\todo{(možná hned používat Gabor coefficients, ať dále dává smysl termín Gabor transform)} coefficients of the signal $ \mathbf{s} $.
 However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
-The closest redefinition is to use the $ \ell_1 $ norm as follows:
+The closest redefinition is to use the $ \ell_1 $-norm as follows:
 
 \begin{equation}
 	\label{eq:synthesis.gamma}
-	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma
+	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{subject to}\ \mathbf{D}\mathbf {c}\in \Gamma,
 \end{equation} 
-where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform) and we assume $ \mathbf{A} $, $ \mathbf{D} = \mathbf{A}^* $ and therefore the reconstructed signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
-\todo{Je správně $ \mathbf {y} \approx \mathbf{D}\mathbf {c}$, nebo $ \mathbf {y} =  \mathbf{D}\mathbf {c}$? : MŠ: myslím, že rovná sa je správne.}
-%\todo{Dal bych asi i $A$ a $\mathbf{D}$ jako matice, i když není nutno.}
+where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform), which is the adjoint of the analysis operator $ \mathbf{A} $, i.e., $ \mathbf{D} = \mathbf{A}^* $.
+Therefore the reconstructed signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
+% \todo{Je správně $ \mathbf {y} \approx \mathbf{D}\mathbf {c}$, nebo $ \mathbf {y} =  \mathbf{D}\mathbf {c}$? : MŠ: myslím, že rovná sa je správne.}
+% \todo{Dal bych asi i $A$ a $\mathbf{D}$ jako matice, i když není nutno.}
 % Set $ \Gamma $ is defined as follows:
 
 %\begin{equation}
 %	\label{eq:Gamma}
-%	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace,
+%	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\textup{R}}\mathbf {y}=M_{\textup{R}}\mathbf {s}\rbrace,
 %\end{equation}
 
 %One of the suitable solutions is DR algorithm in \ref{alg:DRA_c} \cite{Mokry2020}.
@@ -182,12 +183,13 @@ where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform) and
 %	\end{algorithmic} 
 %\end{algorithm}
 
-In the presence of noise, the condition $D\mathbf {c}\in \Gamma$ is not beneficial, since it forces the solution to still contain the noise.
+In the presence of noise, the condition $\mathbf{D}\mathbf {c}\in \Gamma$ is not beneficial, since it forces the solution to still contain the noise.
 Its reduction can be included in the formulation by rather minimizing the distance of the solution from the set $\Gamma$.
-This can be computed as the difference of the solution $D\mathbb{c}$ and the observation $\mathbf{s}$  on the positions $I^R$, typically, squared $\ell_2$ norm is used in this context:
+This can be computed as the difference of the solution $\mathbf{D}\mathbf{c}$ and the observation $\mathbf{s}$  on the positions $I_\textup{R}$.
+Typically, squared $\ell_2$-norm is used in this context:
 \begin{equation}
 	\label{eq:synthesis.dist}
-	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} D\mathbf {c} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
+	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\textup{R}} \mathbf{D}\mathbf {c} - \mathbf{M}_{\textup{R}} \mathbf{s} \Vert^2_2.
 \end{equation} 
 The parameter $\alpha > 0$ manages the trade-off between sparsity of the coefficients and the data-fidelity.
 
@@ -203,23 +205,25 @@ However, the algorithms use the Gabor coefficients as the main variable, which m
 
 Second approach uses time domain samples as input.
 It has mainly computational advice against first approach, in algorithm are less time-frequency transformations (e.g less multiplication operations per iteration).
-Problem is, 
-that we do not know proximal operator of $ \ell_1 $ norm after analysis, but we can use approximal operator \cite{Mokry2021}.
+\todo{OM: tato první věta není úplně pravda, protože v iteraci algoritmu \ref{alg:DRA} pořád máme jednu analýzu a jednu syntézu, stejně jako by tomu bylo v případě syntetizujícím (tam by se ty operátory vyskytovaly uvnitř projekce).}
+The problem is 
+that we do not know proximal operator of $ \ell_1 $-norm after analysis, which is essential for the DRA.
+However, we can resort to the so-called approximal operator without significant loss of reconstruction quality \cite{Mokry2021}.
 
 The main minimazation task \eqref{eq:analysis.gamma} is reformulated as,
 \begin{equation}
 	\label{eq:analysis.gamma}
-	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 \quad \text{s.t.}\ \mathbf {x}\in \Gamma,
+	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 \quad \text{subject to}\ \mathbf {x}\in \Gamma,
 \end{equation}
 or, in the denoising case,
 \begin{equation}
 	\label{eq:analysis.dist}
-	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {y}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {x} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
+	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\textup{R}} \mathbf {x} - \mathbf{M}_{\textup{R}} \mathbf{s} \Vert^2_2.
 \end{equation} 
 %and $ \Gamma $ is similarly as in \eqref{eq:Gamma} % Tags???????  
 %\todo{Tuto rovnici tu máme dvakrát.}
 %\begin{equation}
-%	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+%	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\textup{R}}\mathbf {y}=M_{\textup{R}}\mathbf {s}\rbrace.
 %\end{equation}
 To solve \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}, DRA can also be employed, even though it solves only an approximation of the objective \cite{Mokry2021}.
 The algorithm is summarized in Alg.\,\ref{alg:DRA}.
@@ -243,7 +247,7 @@ The operator $ \operatorname{proj}_{\Gamma}$ is projection onto convex set $ \Ga
 Projection, in this case, means replacing reconstructed samples in positions considered reliable by the observed samples.
 The parameter $\beta$ allows to differentiate between simple inpainting \eqref{eq:analysis.gamma} and the joint problem \eqref{eq:analysis.dist}.
 The case of $\beta = 1$ corresponds to performing projection in the update, in line with \cite{Mokry2020}.
-For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the so-called proximal operator of $f(\mathbf{x}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {x} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
+For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the proximal operator of $f(\mathbf{x}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\textup{R}} \mathbf {x} - \mathbf{M}_{\textup{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
 
 
 \section{Plug-and-Play inpainting} \label{sec:plugaandplay}
@@ -269,26 +273,29 @@ We reformulate the algorithm in \ref{alg:pnp}:
 	\end{algorithmic} 
 \end{algorithm}
 
-\subsection{Denoisers}
+%\subsection{Denoisers}
 
-The requirements for our denoiser $\mathcal{D}$ are primarily good results in subjective metrics.
-They will be discussed more in \ref{subsec:metrics}.
-Implementation of our denoiser is based on mayavoz toolkit \cite{Shahul2023}.
+Convergence of the plug-and-play approach can be proven in case $\mathcal{D}$ is a non-expansive operator \cite{Chan2016}.
+However, this is hard to prove in practice with off-the-shelf denoisers.
+Thus, the only requirement for our denoiser $\mathcal{D}$ was primarily good results in subjective metrics.
+These will be discussed more in \ref{subsec:metrics}.
+The implementation of the denoiser of our choice is based on the \textit{mayavoz} toolkit \cite{Shahul2023}.
 This tool provides us simple use of learned model with downloadable checkpoints.
-Our selection is WaveUnet learned on Valentini dateset \cite{ValentiniBotinhao2017}(variant with 28 speakers).
+Our selection is the WaveUnet learned on the Valentini dateset \cite{ValentiniBotinhao2017} (the variant with 28 speakers).
 
 \section{Testing data and evaluation}\label{sec:eval}
 
-As was introduced before, we use discrete Gabor transform as analysis operator $\mathbf{A}$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{\textup{FFT}} = 1024$.
-To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D}$ is configured the same \cite{Mokry2020}.
+As introduced before, we use discrete Gabor transform as the analysis operator $\mathbf{A}$ with following setup parameters: Gauss window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform %(FFT)
+$n_{\textup{FFT}} = 1024$.
+To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D} = \mathbf{A}^*$ is configured in the same way \cite{Mokry2020}.
 
 \subsection{Metrics}\label{subsec:metrics}
 
 %\todo{SNR,PESQ,STOI}
 
 A standard metric for reconstruction quality is the signal-to-noise ratio (SNR), where the \textit{signal} represents the clean ground truth and \textit{noise} is the difference of the reconstruction and the ground truth.
-We calculate SNR either for whole signal or only on $I^M$, i.e, on the indices of missing samples.
-The higher SNR means better reconstruction.
+We calculate SNR either for whole signal or only on $I_\textup{M}$, i.e, on the indices of missing samples.
+The higher SNR the better the reconstruction.
 
 A drawback of SNR is that it measures sample-wise difference, which does not take into account human perception of sound quality.
 Valuable metrics for speech signals are those, which measure human perception.
@@ -299,44 +306,63 @@ STOI measures correlation of two signals on a scale from $0$ to $1$.
 
 \subsection{Choice of soft threshold parameter}\label{subsec:soft_thresh}
 
-For reduction of variable parameters in comparison test between conventional and deep learning approach, we decided to fix the $\gamma$ in DRA.
-We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1\}$.
-Results are shown in \ref{fig:gammatest}.
+To reduce the number of variables in the comparison between the conventional and plug-and-play approach, we decided to fix the $\gamma$ parameter in DRA.
+We examined DRA with values of $\gamma\in\{0.001, 0.01,0.1\}$.
+At the same time, we examined the effect of the trade-off parameter $\beta$ in Alg.\,\ref{alg:DRA}, since it has a significant effect on the results in the case of signal denoising. 
+The results are shown in \ref{fig:gammatest} for a single speech signal.
 %\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
+\todo{OM: Tady nám chybí, jaká rekonstrukční úloha vlastně byla řešena.
+Buď bych posunul část C o jedno výše, ať jsou všechny experimenty až za ní.
+Nebo, pokud se jednalo o jiný signál s jiným šumem (což bych řekl že není zásadní problém), tak by to tu mělo být zvlášť popsané.}
+
 
 \begin{figure}[h]
 	\includegraphics[width=1\linewidth]{figures/gamma_test}
-	\caption{PESQ metric results made to choose the best $\gamma$ in DRA for testing with multiple audio files.
-	The results in another metrics (STOI,SNR) are similar.
-	Label \textit{proj fraction} refers to ratio $/beta$ from \ref{alg:DRA}.}
+	\caption{PESQ metric results made to choose the best value of $\gamma$ in DRA for testing with multiple audio files (these values are shown in the legend). \todo{Dopsal bych to přímo do obrázku, pokud to půjde, že $\gamma=\dots$.}
+	The results in terms of STOI and SNR were principally the same.
+	The label \textit{proj fraction} refers to parameter $\beta$ from Alg.\,\ref{alg:DRA}.}
 	\label{fig:gammatest}
 \end{figure}
 
-The best results were obtain with $\gamma=0.01$, which has shown succesful mostly with ascending ratio of projected signal.
+The best results were obtain with $\gamma=0.01$, which was the most successful, especially while increasing ratio of projected signal.
 
 \subsection{Dataset and test setup}
-We choose randomly 10 audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (dataset is split to two subsets: clean and noisy).
-We use clean sample as reference and noise as input to algorithm (clean with addition of noise, which is required to supress).
-As a simulation of inpainting task, we use uniformly distributed mask of zero and ones, where partition of 0 is $40\%$,
-e.g $60\%$ of indices is for reliable samples.
-Then this mask is applied as dot product with noise signal.
+We have chosen randomly 10 audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (the dataset is split to two subsets: clean and noisy).
+\todo{Jde najít nebo spočítat, jaká je zhruba úroveň šumu u našich vzorků? Spočítat by to jít mohlo, prostě SNR pro clean versus noisy-clean\dots}
+For each signal, we used the clean sample as a reference and its noisy variant as the input to the algorithm. % (clean with addition of noise, which is required to supress).
+As a simulation of inpainting task, we used random drop-out of % uniformly distributed mask of zero and ones, where partition of 0 is
+$40\%$ of samples as used in \cite{Mokry2021}.
+This means that the reliable set $I_\textup{R}$ consisted of $60\%$ of all the sample indices.
+% Then this mask is applied as dot product with noise signal.
 
-We choose $\gamma = 0.1$ as mentioned in \ref{subsec:soft_thresh}.
-Simulation is split to three variants: two conventional and one with deep learning.
-Traditional are DRA \ref{alg:DRA} with same parameters except number of iterations: $50$ and $500$.
-DRA with denoiser proposed in algorithm \ref{alg:pnp} is deep learned variant, we test $50$ iterations,
-as in shorter conventional method.
-In every algorithm is $\lambda$ scaled with coefficent $\alpha$ \todo{(MŠ: zvolil som alfu, ale v algoritme nie je vôbec. Je potrebné ju do algoritmov pridať?)} each iteration.
-We set $\alpha$ to $0.9$ in algorithms with $50$ iterations and $1$ for DRA $500$ iterations, because the effect of $\lambda$ after $500$ divisions will be negligible.
+As described before in \ref{subsec:soft_thresh}, we have chosen $\gamma = 0.01$.
+The simulation was split to three variants: two conventional ones and one including the learned denoiser.
+The conventional ones were two versions of DRA \ref{alg:DRA} with same parameters except for the number of iterations ($50$ or $500$) and the choice of $\lambda_n$ (decreasing or constant).
+The DRA with denoiser proposed in algorithm \ref{alg:pnp} was tested $50$ iterations,
+as in the shorter conventional method.
+In all the algorithms, the initial $\lambda_0$ was set to $0.1$. \todo{Zkontrolovat, kdybychom měnili.}
+For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = \lambda_0$.
+In the case of the plug-and-play version \ref{alg:pnp}, and the reference DRA \ref{alg:DRA} with 50 iterations, the parameter was set to decrease in every iteration as $\lambda_{n+1} = 0.9\cdot\lambda_n$.
+\todo{Máme nějaké historické obrázky (nebo můžeme znova pustit nějaký starý test), který by ilustroval, proč potřebujeme tu lambdu snižovat? Nebo to tu jen řekneme, že se jinak kvalita zhoršovala s postupujícími iteracemi? V tomto místě by to totiž chtělo vysvětlit, proč to tak bylo nastaveno.}
+%In every algorithm is $\lambda$ scaled with coefficent $\alpha$
+%\todo{(MŠ: zvolil som alfu, ale v algoritme nie je vôbec. Je potrebné ju do algoritmov pridať?)}
+%\todo{OM: $\alpha$ se mi hodilo výše v rovnici \eqref{eq:analysis.dist}, zde jsem to zkusil přepsat bez potřeby nějak to označit}
+%each iteration.
+%We set $\alpha$ to $0.9$ in algorithms with $50$ iterations and $1$ for DRA $500$ iterations, because the effect of $\lambda$ after $500$ divisions will be negligible.
 
 
 
-\subsection{Results of tests}
+\subsection{Comparison results}
 
 
 
 %\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
-\todo{MŠ-Graf sa ešte doplní lepší, musím vymyslieť ešte ako.}
+\todo{MŠ: Graf sa ešte doplní lepší, musím vymyslieť ešte ako.}
+
+\todo{OM: Možná místo Denoise bych používal Plug-and-play.}
+
+\todo{OM: Na co bych se tak zaměřil v diskuzi výsledků: Plug-and-play je méně citlivý na volbu poměru v projekci a v případě srovnání s DRA \ref{alg:DRA} se stejnými parametry (50 iterací, klesající $\lambda_n$) může dosáhnout epších výsledků.
+Ve srovnání s DRA s 500 iteracemi máme nižší variabilitu, ovšem globálně, při možnosti optimalizovat paramtry jako je právě míchací poměr $\beta$, jsou naše výsledky horší.}
 
 \begin{figure*}
 	\includegraphics[width=\linewidth]{figures/final2_with_errors}
@@ -349,7 +375,7 @@ We set $\alpha$ to $0.9$ in algorithms with $50$ iterations and $1$ for DRA $500
 
 \todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
 
-\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
+\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Současně u vlastního učení bychom mohli umět zařídit, že denoiser bude non-expansive a tudíž splníme teoretické záruky konvergence \cite{Venkatakrishnan2013,Chan2016}. Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
 
 \section*{Appendix: Derivation of the projection-like update}
 
@@ -358,22 +384,22 @@ We set $\alpha$ to $0.9$ in algorithms with $50$ iterations and $1$ for DRA $500
 \todo{%
 	Dle \cite[Tab.\,1]{Combettes2011}
 	\begin{equation}
-		\operatorname{prox}_f(\mathbf{y}) = (\mathbf{I} + \alpha \mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}})^{-1}(\mathbf{y} + \alpha\mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}}\mathbf{s}).
+		\operatorname{prox}_f(\mathbf{y}) = (\mathbf{I} + \alpha \mathbf{M}_{\textup{R}}^\top\mathbf{M}_{\textup{R}})^{-1}(\mathbf{y} + \alpha\mathbf{M}_{\textup{R}}^\top\mathbf{M}_{\textup{R}}\mathbf{s}).
 	\end{equation}
-	Protože $\mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}}$ je diagonální matice, která má 1 na pozicích $I^R$ a 0 na pozicích $I^M$ diagonály, můžeme rozepsat po vzorcích (pozor, $n$ zde indexuje vzorky, ne iterace)
+	Protože $\mathbf{M}_{\textup{R}}^\top\mathbf{M}_{\textup{R}}$ je diagonální matice, která má 1 na pozicích $I_\textup{R}$ a 0 na pozicích $I_\textup{M}$ diagonály, můžeme rozepsat po vzorcích (pozor, $n$ zde indexuje vzorky, ne iterace)
 	\begin{equation}
 		\left[\operatorname{prox}_f(\mathbf{y})\right]_n = \begin{cases}
-			\frac{1}{1+\alpha}(y_n + \alpha s_n) \quad &\text{pro } n\in I^R, \\
-			y_n\quad &\text{pro } n\in I^M. 
+			\frac{1}{1+\alpha}(y_n + \alpha s_n) \quad &\text{pro } n\in I_\textup{R}, \\
+			y_n\quad &\text{pro } n\in I_\textup{M}. 
 		\end{cases}
 	\end{equation}
-	V našem případě $(1-\beta)\mathbf{x} + \beta \operatorname{proj}_{\Gamma}(\mathbf{x})$ jsou pozice $I^M$ zřejmé, protože projekce tyto vzorky nemění, tzn.\ máme
+	V našem případě $(1-\beta)\mathbf{x} + \beta \operatorname{proj}_{\Gamma}(\mathbf{x})$ jsou pozice $I_\textup{M}$ zřejmé, protože projekce tyto vzorky nemění, tzn.\ máme
 	\begin{equation}
-		(1-\beta) x_n + \beta x_n = x_n \text{ pro } n\in I^M.
+		(1-\beta) x_n + \beta x_n = x_n \text{ pro } n\in I_\textup{M}.
 	\end{equation}
-	Pro vzorky v $I^R$ naopak projekce vrací hodnotu $s_n$, tudíž
+	Pro vzorky v $I_\textup{R}$ naopak projekce vrací hodnotu $s_n$, tudíž
 	\begin{equation}
-		(1-\beta) x_n + \beta s_n = \frac{1}{1+\alpha}(x_n + \alpha s_n)\text{ pro } n\in I^R.
+		(1-\beta) x_n + \beta s_n = \frac{1}{1+\alpha}(x_n + \alpha s_n)\text{ pro } n\in I_\textup{R}.
 	\end{equation}
 	Odsud
 	\begin{equation}
