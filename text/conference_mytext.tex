@@ -242,6 +242,48 @@ Projection, in this case, is simply replacing reconstructed samples in positions
 
 \section{Testing data and evaluation}\label{sec:eval}
 
+As was introduced before, we use discrete Gabor transform as analysis operator $A$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{FFT} = 1024$.
+To satisfy the Parseval tight frame condition, the synthesis operator $D$ is configured the same. \todo{Citácia}.
+
+\subsection{Metrics}
+
+\todo{SNR,PESQ,STOI}
+The most valuable metrics for speech signals are those, which measure human perception.
+We use two objective metrics: Perceptual Evaluation of Speech Quality (PESQ) \cite{Rix2001} and 
+Short-Time Objective Intelligibility (STOI) \cite{Taal2010}.
+PESQ has scale from $-0.5$ -- $4.5$, with higher score meaning better result.
+STOI measures correlation of two signals, $-0$ -- $1$.
+
+The signal-to-noise ration as standard (SNR) is also used.
+We calculate SNR for whole signal and only in indices of missing samples.
+The higher SNR means better reconstruction.
+\subsection{Choose of soft threshold parameter}\label{subsec:soft_thresh}
+
+For reduction of variable parameters in comparison test between conventional and deep learning approach, we decided to fix the $\gamma$ in DRA.
+We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1, 1\}$.
+\todo{Popis výberu parametru gamma na základe testu -- Graf, Prečo sme vybrali konkrétne gamma -DISKUSIA}
+\subsection{Dataset and test setup}
+We choose randomly 10 \todo{neviem či náhodne (zoradil som podľa veľkosti a vybral "primerane" dlhé) a ak zvýšime ešte počet nahrávok tak sa to zmení} audio files for final evaluation from Valentini dataset \cite{ValentiniBotinhao2017} used commonly in speech enhancement challenges (dataset is split to two subsets: clean and noisy).
+We use clean sample as reference and noise as input to algorithm (clean with addition of noise, which is required to supress).
+As a simulation of inpainting task, we use uniformly distributed mask of zero and ones, where partition of 0 is $40\%$,
+e.g $60\%$ of indices is for reliable samples.
+Then this mask is applied as dot product with noise signal.
+
+We choose $\gamma = 0.1$ as mentioned in \ref{subsec:soft_thresh}.
+Simulation is split to three variants: two conventional and one with deep learning.
+Traditional are DRA with same parameters except number of iterations: $50$ and $500$.
+DRA with denoiser proposed in algorithm \todo{referencia na algo} is deep learned variant, we test $50$ iterations,
+as in shorter conventional method.
+In every algorithm is $\lambda$ scaled with coefficent \todo{nejaká alfa? podľa algoritmu to isté značenie.} each iteration.
+We set \todo{$\alpha$} to $0.9$.
+
+
+
+
+\subsection{Results of tests}
+
+\todo{Na diskusiu}
+
 
 \section{Conclusion}
 \label{sec:conclusion}
