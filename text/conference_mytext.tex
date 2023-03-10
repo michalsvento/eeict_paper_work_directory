@@ -110,14 +110,14 @@ Finally, Section \ref{sec:conclusion} concludes the paper.
 
 \section{Prerequsities}\label{sec:prereq} 
 
-\todo{Asi můžeme nechat obě formulace, protože zapadají do příběhu -- máme formulaci pro koeficienty, která umožňuje formulovat DRA s projekcí a soft. My ale chceme upravovat proximální operátor definovaný na signálu, proto máme druhou formulaci a k ní příslušný (přibližný) algoritmus \ref{alg:DRA_t}.
-U varianty koeficienty bych ale možná nechal formulaci, ale algoritmus \ref{alg:DRA_c} bych možná vypustil.}
+%\todo{Asi můžeme nechat obě formulace, protože zapadají do příběhu -- máme formulaci pro koeficienty, která umožňuje formulovat DRA s projekcí a soft. My ale chceme upravovat proximální operátor definovaný na signálu, proto máme druhou formulaci a k ní příslušný (přibližný) algoritmus \ref{alg:DRA_t}.
+%U varianty koeficienty bych ale možná nechal formulaci, ale algoritmus \ref{alg:DRA_c} bych možná vypustil.}
 
-In this section, we formulate the first task -- inpainting.
-The proposed method \cite{Chan2016} assumes any damage,
-but we start with missing samples and then expand the model for various damages.
-The rest of the section explains minimization problem solved by DRA.
-Solution has two approaches.
+In this section, we formalize the task of inpainting and denoising and propose algorithmic solutions based on DRA.
+% The proposed method \cite{Chan2016} assumes any damage,
+% but we start with missing samples and then expand the model for various damages.
+% The rest of the section explains minimization problem solved by DRA.
+% Solution has two approaches.
 First, using frequency coefficients as input explained in \ref{subsec:freqcoef}~\cite{Mokry2020}.
 Second, using samples in time domain is described in subsection \ref{subsec:timecoef} \cite{Mokry2021}.
 
@@ -137,11 +137,11 @@ In words, $\mathbf{M}_{\mathrm{R}}\mathbf{s}$ represents choosing the samples fr
 It is natural to define the set of signals fitting the observation as
 \begin{equation}
 	\label{eq:Gamma}
-	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid \mathbf{M}_{\mathrm{R}}\mathbf {y}=\mathbf{M}_{\mathrm{R}}\mathbf {s}\rbrace.
 \end{equation}
 In the noise-less case, we would search for a suitable signal in $\Gamma$.
 On the other hand, when the observed samples are distorted by noise, we only require the solution \todo{(zavedeme si nějaké značení pro výsledný signál?)} to be close to the set $\Gamma$.
-
+\todo{V algoritmech máme proměnnou $\mathbf{x}$ pro signály, tudíž bych ji asi používal už odsud namísto $\mathbf{y}$.}
 
 \subsection{COEFFS INPUT Aprroach -- WORK NAME}\label{subsec:freqcoef}
 \todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
@@ -151,12 +151,12 @@ However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokr
 The closest redefinition is to use the $ \ell_1 $ norm as follows:
 
 \begin{equation}
- \mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma
+	\label{eq:synthesis.gamma}
+	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{s.t.}\ D\mathbf {c}\in \Gamma
 \end{equation} 
 where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assume $ A $, $ D = A^* $ and therefore the reconstructed signal corresponds to $ \mathbf {y} \approx  D\mathbf {c}$.
 \todo{Je správně $ \mathbf {y} \approx  D\mathbf {c}$, nebo $ \mathbf {y} =  D\mathbf {c}$?}
-
-\todo{Definici $\Gamma$ jsem posunul výše.}
+\todo{Dal bych asi i $A$ a $D$ jako matice, i když není nutno.}
 % Set $ \Gamma $ is defined as follows:
 
 %\begin{equation}
@@ -164,26 +164,38 @@ where $ D $ is synthesis operator (inverse discrete Gabor transform) and we assu
 %	\Gamma = \lbrace \mathbf {y}\in \mathbb {R}^L\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace,
 %\end{equation}
 
-One of the suitable solutions is DR algorithm in \ref{alg:DRA_c} \cite{Mokry2020}.
+%One of the suitable solutions is DR algorithm in \ref{alg:DRA_c} \cite{Mokry2020}.
+%
+%\begin{algorithm}
+%	\caption{Douglas-Rachford algorithm -- model with frequency coefficients}
+%	\begin{algorithmic}[1]\label{alg:DRA_c}
+%		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+%		\renewcommand{\algorithmicensure}{\textbf{Output:}}
+%		\REQUIRE  $ \gamma > 0 $, $ \delta  \in (0,1)$ ,
+%		
+%		\FOR {$n = 0, 1, \dots$}
+%		\STATE $\mathbf{\widetilde{c}}_n=\operatorname{proj}_{\Gamma}(\mathbf{c}_n) $ 
+%		\STATE $ \mathbf{c}_{n+1} = \mathbf{c}_n + \lambda \left( \operatorname{soft}_{\gamma}\left(2\mathbf{\widetilde{c}}_n-\mathbf{c}_n \right)-\mathbf{\widetilde{c}}_n\right)$
+%		\ENDFOR
+%		\RETURN $D(\operatorname{proj}_{\Gamma}(\mathbf{c}_n))$ 
+%	\end{algorithmic} 
+%\end{algorithm}
 
-\begin{algorithm}
-	\caption{Douglas-Rachford algorithm -- model with frequency coefficients}
-	\begin{algorithmic}[1]\label{alg:DRA_c}
-		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE  $ \gamma > 0 $, $ \delta  \in (0,1)$ ,
-		
-		\FOR {$n = 0, 1, \dots$}
-		\STATE $\mathbf{\widetilde{c}}_n=\operatorname{proj}_{\Gamma}(\mathbf{c}_n) $ 
-		\STATE $ \mathbf{c}_{n+1} = \mathbf{c}_n + \lambda \left( \operatorname{soft}_{\gamma}\left(2\mathbf{\widetilde{c}}_n-\mathbf{c}_n \right)-\mathbf{\widetilde{c}}_n\right)$
-		\ENDFOR
-		\RETURN $D(\operatorname{proj}_{\Gamma}(\mathbf{c}_n))$ 
-	\end{algorithmic} 
-\end{algorithm}
-Operator $ \operatorname{proj}_{\Gamma}(arg)$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}(arg)$ is soft thresholding operator.
-Both are proximal operators.
+In the presence of noise, the condition $D\mathbf {c}\in \Gamma$ is not beneficial, since it forces the solution to still contain the noise.
+Its reduction can be included in the formulation by rather minimizing the distance of the solution from the set $\Gamma$.
+This can be computed as the difference of the solution $D\mathbb{c}$ and the observation $\mathbf{s}$  on the positions $I^R$, typically, squared $\ell_2$ norm is used in this context:
+\begin{equation}
+	\label{eq:synthesis.dist}
+	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} D\mathbf {c} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
+\end{equation} 
+The parameter $\alpha > 0$ manages the trade-off between sparsity of the coefficients and the data-fidelity.
 
-The condition   $ \delta  \in (0,1)$ is strict for convergence of solution \cite{Combettes2011}.
+%Operator $ \operatorname{proj}_{\Gamma}(arg)$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}(arg)$ is soft thresholding operator.
+%Both are proximal operators.
+%
+%The condition   $ \delta  \in (0,1)$ is strict for convergence of solution \cite{Combettes2011}.
+Both \eqref{eq:synthesis.gamma} and \eqref{eq:synthesis.dist} could be solved using DRA \cite{Mokry2020, Zaviska2021}.
+However, the algorithms use the Gabor coefficients as the main variable, which makes the incorporation of a denoiser (working with a signal as the input) problematic.
 
 
 \subsection{SAMPLES as INPUT APPROACH}\label{subsec:timecoef}
@@ -193,47 +205,62 @@ It has mainly computational advice against first approach, in algorithm are less
 Problem is, 
 that we do not know proximal operator of $ \ell_1 $ norm after analysis, but we can use approximal operator \cite{Mokry2021}.
 
-The main minimazation task reformulates as:
+The main minimazation task \eqref{eq:analysis.gamma} is reformulated as,
 \begin{equation}
-	\mathop {\operatorname{arg \, min}}_\mathbf {s}\Vert \mathbf {s}\Vert _1 \quad \text{s.t.}\ \mathbf {s}\in \Gamma,
-\end{equation} 
-and $ \Gamma $ is similarly as in \eqref{eq:Gamma} % Tags???????  
-\todo{Tuto rovnici tu máme dvakrát.}
-\begin{equation}
-	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+	\label{eq:analysis.gamma}
+	\mathop {\operatorname{arg \, min}}_\mathbf {y}\Vert A \mathbf {y}\Vert _1 \quad \text{s.t.}\ \mathbf {y}\in \Gamma,
 \end{equation}
-Afterwards our algorithm resolves to following: 
+or, in the denoising case,
+\begin{equation}
+	\label{eq:analysis.dist}
+	\mathop {\operatorname{arg \, min}}_\mathbf {y}\Vert A \mathbf {y}\Vert _1 + \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {y} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2.
+\end{equation} 
+%and $ \Gamma $ is similarly as in \eqref{eq:Gamma} % Tags???????  
+%\todo{Tuto rovnici tu máme dvakrát.}
+%\begin{equation}
+%	\Gamma = \lbrace \mathbf {s}\in \mathbb {R}^N\mid M_{\mathrm{R}}\mathbf {y}=M_{\mathrm{R}}\mathbf {s}\rbrace.
+%\end{equation}
+To solve \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}, DRA can also be employed, even though it solves only an approximation of the objective \cite{Mokry2021}.
+The algorithm is summarized in Alg.\,\ref{alg:DRA}.
+
+% Afterwards our algorithm resolves to following \cite{Mokry2020}: 
 \begin{algorithm}
-	\caption{Douglas-Rachford algorithm -- model with time coefficients}
-	\begin{algorithmic}[1]\label{alg:DRA_t}
+	\caption{DRA for \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}.}
+	\begin{algorithmic}[1]\label{alg:DRA}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE $ \lambda > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $ \todo{Zmínit, že $\lambda$ může být (a u nás bude) proměnné.}
+		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
 		\FOR {$n = 0, 1, \dots$}
-		\STATE $\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
-		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda \left( D\left(\operatorname{soft}_{\gamma}\left(A\left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n\right) \right)\right) -\mathbf{\widetilde{x}}_n\right)$
+		\STATE $\mathbf{\widetilde{x}}_n= (1-\beta)\mathbf{x}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
+		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda_n \left( D\left(\operatorname{soft}_{\gamma}\left(A\left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n\right) \right)\right) -\mathbf{\widetilde{x}}_n\right)$
 		\ENDFOR
-		\RETURN $\operatorname{proj}_{\Gamma}(\mathbf{x}_n)$ 
+		\RETURN $\mathbf{\widetilde{x}}_n$ \todo{Možná vyměnit značení $\mathbf{\widetilde{x}}$ a $\mathbf{x}$?}
 	\end{algorithmic} 
 \end{algorithm}
 
-Projection, in this case, is simply replacing reconstructed samples in positions considered reliable.
+The operator $ \operatorname{proj}_{\Gamma}$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}$ is soft thresholding operator \cite{Combettes2011}.
+Projection, in this case, means replacing reconstructed samples in positions considered reliable by the observed samples.
+The parameter $\beta$ allows to differentiate between simple inpainting \eqref{eq:analysis.gamma} and the joint problem \eqref{eq:analysis.dist}.
+The case of $\beta = 1$ corresponds to performing projection in the update, in line with \cite{Mokry2020}.
+For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the so-called proximal operator of $f(\mathbf{y}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\mathrm{R}} \mathbf {y} - \mathbf{M}_{\mathrm{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
+
 
 \section{Plug-and-Play inpainting} \label{sec:plugaandplay}
 
 \subsection{general algorithm}
 
 \begin{algorithm}
-	\caption{Plug-and-Play DR algorithm}
-	\begin{algorithmic}[1]
+	\caption{Plug-and-Play DRA}
+	\begin{algorithmic}[1]\label{alg:pnp}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
-		\REQUIRE in
+		\REQUIRE $ \lambda_n > 0 $, $ \gamma>0 $, $ \mathbf{x}_0 \in \mathbb{R}^{N} $, $\beta \in [0, 1]$
 		\FOR {$n = 0, 1, \dots$}
-		\STATE $\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
-		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda \left( \mathcal{D} \left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n \right)-\mathbf{\widetilde{x}}_n\right)$
+		\STATE %$\mathbf{\widetilde{x}}_n=\operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
+		$\mathbf{\widetilde{x}}_n= (1-\beta)\mathbf{x}_n + \beta \operatorname{proj}_{\Gamma}(\mathbf{x}_n) $ 
+		\STATE $ \mathbf{x}_{n+1} = \mathbf{x}_n + \lambda_n \left( \mathcal{D} \left(2\mathbf{\widetilde{x}}_n-\mathbf{x}_n \right)-\mathbf{\widetilde{x}}_n\right)$
 		\ENDFOR
-		\RETURN $\operatorname{proj}_{\Gamma}(\mathbf{x}_n)$ 
+		\RETURN $\mathbf{\widetilde{x}}_n$ 
 	\end{algorithmic} 
 \end{algorithm}
 \subsection{choice of denoiser}
@@ -242,22 +269,25 @@ Projection, in this case, is simply replacing reconstructed samples in positions
 
 \section{Testing data and evaluation}\label{sec:eval}
 
-As was introduced before, we use discrete Gabor transform as analysis operator $A$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{FFT} = 1024$.
+As was introduced before, we use discrete Gabor transform as analysis operator $A$ with following setup parameters: Gauss  window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform (FFT) $n_{\textup{FFT}} = 1024$.
 To satisfy the Parseval tight frame condition, the synthesis operator $D$ is configured the same. \todo{Citácia}.
 
 \subsection{Metrics}
 
-\todo{SNR,PESQ,STOI}
-The most valuable metrics for speech signals are those, which measure human perception.
+%\todo{SNR,PESQ,STOI}
+
+A standard metric for reconstruction quality is the signal-to-noise ratio (SNR), where the \textit{signal} represents the clean ground truth and \textit{noise} is the difference of the reconstruction and the ground truth.
+We calculate SNR either for whole signal or only on $I^M$, i.e, on the indices of missing samples.
+The higher SNR means better reconstruction.
+
+A drawback of SNR is that it measures sample-wise difference, which does not take into account human perception of sound quality.
+Valuable metrics for speech signals are those, which measure human perception.
 We use two objective metrics: Perceptual Evaluation of Speech Quality (PESQ) \cite{Rix2001} and 
 Short-Time Objective Intelligibility (STOI) \cite{Taal2010}.
-PESQ has scale from $-0.5$ -- $4.5$, with higher score meaning better result.
-STOI measures correlation of two signals, $-0$ -- $1$.
+PESQ has scale from $-0.5$ to $4.5$, with higher score meaning better result.
+STOI measures correlation of two signals on a scale from $0$ to $1$.
 
-The signal-to-noise ration as standard (SNR) is also used.
-We calculate SNR for whole signal and only in indices of missing samples.
-The higher SNR means better reconstruction.
-\subsection{Choose of soft threshold parameter}\label{subsec:soft_thresh}
+\subsection{Choice of soft threshold parameter}\label{subsec:soft_thresh}
 
 For reduction of variable parameters in comparison test between conventional and deep learning approach, we decided to fix the $\gamma$ in DRA.
 We tried DRA with multiple $\gamma$: $\{0.001, 0.01,0.1, 1\}$.
@@ -303,6 +333,36 @@ We set \todo{$\alpha$} to $0.9$.
 \todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
 
 \todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
+
+\section*{Appendix: Derivation of the projection-like update}
+
+\noindent
+\todo{\textbf{(do článku bych asi nedával, spíš pro info})}
+\todo{%
+	Dle \cite[Tab.\,1]{Combettes2011}
+	\begin{equation}
+		\operatorname{prox}_f(\mathbf{y}) = (\mathbf{I} + \alpha \mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}})^{-1}(\mathbf{y} + \alpha\mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}}\mathbf{s}).
+	\end{equation}
+	Protože $\mathbf{M}_{\mathrm{R}}^\top\mathbf{M}_{\mathrm{R}}$ je diagonální matice, která má 1 na pozicích $I^R$ a 0 na pozicích $I^M$ diagonály, můžeme rozepsat po vzorcích (pozor, $n$ zde indexuje vzorky, ne iterace)
+	\begin{equation}
+		\left[\operatorname{prox}_f(\mathbf{y})\right]_n = \begin{cases}
+			\frac{1}{1+\alpha}(y_n + \alpha s_n) \quad &\text{pro } n\in I^R, \\
+			y_n\quad &\text{pro } n\in I^M. 
+		\end{cases}
+	\end{equation}
+	V našem případě $(1-\beta)\mathbf{x} + \beta \operatorname{proj}_{\Gamma}(\mathbf{x})$ jsou pozice $I^M$ zřejmé, protože projekce tyto vzorky nemění, tzn.\ máme
+	\begin{equation}
+		(1-\beta) x_n + \beta x_n = x_n \text{ pro } n\in I^M.
+	\end{equation}
+	Pro vzorky v $I^R$ naopak projekce vrací hodnotu $s_n$, tudíž
+	\begin{equation}
+		(1-\beta) x_n + \beta s_n = \frac{1}{1+\alpha}(x_n + \alpha s_n)\text{ pro } n\in I^R.
+	\end{equation}
+	Odsud
+	\begin{equation}
+		\beta = \frac{\alpha}{1+\alpha} = 1 - \frac{1}{1+\alpha} \Longrightarrow \alpha = \frac{\beta}{1-\beta}.
+	\end{equation}
+}
 
 %\section*{Acknowledgment}
 %
