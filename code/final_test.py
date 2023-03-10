@@ -6,10 +6,10 @@ Created on Tue Feb 28 15:33:58 2023
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import torch
 from tqdm import tqdm
-import soundfile as sf
+#import soundfile as sf
 from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
 from torchmetrics.audio.pesq import PerceptualEvaluationSpeechQuality
 import time
@@ -71,12 +71,15 @@ model = Mayamodel.from_pretrained("shahules786/mayavoz-waveunet-valentini-28spk"
 
 for no_sig in range(len(clean_files)):
     signal_ID = clean_files[no_sig]
-    orig_signal, Fs = librosa.load(noise_fol +'/'+noise_files[no_sig],sr=16000)
-    ref_sig , Fs = librosa.load(clean_fol +'/'+clean_files[no_sig],sr=16000)
+    orig_signal, Fs = librosa.load(noise_fol +'/'+noise_files[no_sig],sr=None)
+    ref_sig , Fs = librosa.load(clean_fol +'/'+clean_files[no_sig],sr=None)
+    
+    
     pad_size = dgt_params['n_fft'] - len(orig_signal) % dgt_params['n_fft']
     signal = np.concatenate((orig_signal,np.zeros([pad_size]))).astype(np.double())
     ref_signal =  np.concatenate((ref_sig,np.zeros([pad_size]))).astype(np.double())
     
+
     
     signal_norm = signal #/ amplitude
     signal_t = torch.from_numpy(signal_norm).float()#.unsqueeze(0)
@@ -103,7 +106,7 @@ for no_sig in range(len(clean_files)):
     pesq = PerceptualEvaluationSpeechQuality(Fs, 'nb')
     
     # lambda_table = np.logspace(-3,1,10,base=2.0,endpoint=False)  # lambda 0-1 
-    lambda_table = np.array([1])
+    lambda_table = np.array([0.1])
     
     # percentage divisions
     mix_fraction = np.arange(0,1.1,0.1)
@@ -111,12 +114,15 @@ for no_sig in range(len(clean_files)):
     for lam in range(len(mix_fraction)):
         idx_ct = 3*lam + no_sig*(3*len(mix_fraction))
         print('ITE ',lam+1,'/',len(mix_fraction))
-        dra_par['lambda'] = 1#lambda_table[lam]
-        dra_par['lambda_n'] = 1#lambda_table[lam]
+        dra_par['lambda'] = lambda_table[0]
+        dra_par['lambda_n'] = lambda_table[0]
         normx = np.zeros([dra_par["n_ite"],1])
+        normx500 = np.zeros([dra_par["n_ite"]*10,1])
         relative_change = np.zeros([dra_par["n_ite"]-1,3])
         iterations = np.arange(1,dra_par["n_ite"]+1)
-        snr_after_ite = np.zeros([dra_par["n_ite"],3])
+        snr_after_ite = np.zeros([dra_par["n_ite"],2])
+        snr_after_ite5 = np.zeros([dra_par["n_ite"]*10,1])
+        
         
         # %% DR algorithm orig
         
@@ -191,7 +197,7 @@ for no_sig in range(len(clean_files)):
             "SNR_IDX": SNR_idx,
             "rel_change": relative_change[-1,0],
             "proj_frac":mix_fraction[lam]
-                },index=[idx_ct+1])
+                },index=[idx_ct])
         
 
         
@@ -294,23 +300,24 @@ for no_sig in range(len(clean_files)):
         start_time = time.time()
         
         dra_par["n_ite"]=500
+        dra_par['lambda'] = lambda_table[0]
         
         for i in tqdm(range(dra_par["n_ite"])):
             xi = projection_time_domain_mix(x.float(), masksignal_t, mask,mix_fraction[lam])
-            snr_after_ite[i,0] = SNR(xi,ref)
+            snr_after_ite5[i,0] = SNR(xi,ref)
             if i==1:
                 xn = x.clone() 
             if i>0:
-                relative_change[i-1,0]=relative_sol_change(xi, x_prev)
+                relative_change_last=relative_sol_change(xi, x_prev)
             x_prev = xi.clone()
             x =x + dra_par["lambda"]*(tfa.idgt(soft_thresh(tfa.dgt(2*xi - x), dra_par["gamma"]))-xi)  #Denoiser -> soft_thresh
-            normx[i] = l1norm(tfa.dgt(x))
+            normx500[i] = l1norm(tfa.dgt(x))
             dra_par["lambda"] =  dra_par["lambda"] * 0.9
         
         final_x = projection_time_domain_mix(x.float(),ref,mask,mix_fraction[lam])
         
-        SNR_max = np.max(snr_after_ite[:,0])
-        SNR_idx = np.argmax(snr_after_ite[:,0])
+        SNR_max = np.max(snr_after_ite5[:,0])
+        SNR_idx = np.argmax(snr_after_ite5[:,0])
         
         # %% Metrics
         
@@ -355,7 +362,7 @@ for no_sig in range(len(clean_files)):
             "snr_gap": snr_val_gap.item(),
             "SNR_MAX": SNR_max,
             "SNR_IDX": SNR_idx,
-            "rel_change": relative_change[-1,0],
+            "rel_change": relative_change_last.item(),
             "proj_frac":mix_fraction[lam]
                 },index=[idx_ct+2])
         
