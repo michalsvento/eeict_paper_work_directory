@@ -47,7 +47,7 @@ dra_par = {
 
 session_date = datetime.date.today()
 
-dir_name_vis = 'final_test_2'
+dir_name_vis = 'final_test_3'
 print('Folder exists')if os.path.isdir(dir_name_vis) else os.mkdir(dir_name_vis)
 
 
@@ -106,7 +106,7 @@ for no_sig in range(len(clean_files)):
     pesq = PerceptualEvaluationSpeechQuality(Fs, 'nb')
     
     # lambda_table = np.logspace(-3,1,10,base=2.0,endpoint=False)  # lambda 0-1 
-    lambda_table = np.array([0.1])
+    lambda_table = np.array([1])
     
     # percentage divisions
     mix_fraction = np.arange(0,1.1,0.1)
@@ -300,7 +300,7 @@ for no_sig in range(len(clean_files)):
         start_time = time.time()
         
         dra_par["n_ite"]=500
-        dra_par['lambda'] = lambda_table[0]
+        dra_par['lambda'] = lambda_table[0]/10
         
         for i in tqdm(range(dra_par["n_ite"])):
             xi = projection_time_domain_mix(x.float(), masksignal_t, mask,mix_fraction[lam])

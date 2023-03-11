@@ -8,7 +8,8 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{hyperref}
-
+\usepackage{subcaption}
+\usepackage{dblfloatfix}
 \usepackage{xcolor}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
 
@@ -51,8 +52,11 @@
 \maketitle
 
 \begin{abstract}
-\todo{Navrhujeme plug-and-play variantu proximálního algoritmu Douglas--Rachford pro audio inpainting v situaci, kdy i pozoraované vzorky jsou rušeny šumem.
-Demonstrujeme, že plug-and-play přístup má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
+We propose plug-and-play variant of proximal algorithm Douglas--Rachford for audio inpainting.
+In our situation, also observed samples are interferenced with noise.
+We demonstrate, that plug-and-play has potential to succeed after adding a approximal information about some samples.
+In a few metrics increase quality and sensitivity to this parameter is significantly lower than in conventional method. 
+%\todo{Navrhujeme plug-and-play variantu proximálního algoritmu Douglas--Rachford pro audio inpainting v situaci, kdy i pozoraované vzorky jsou rušeny šumem.Demonstrujeme, že plug-and-play přístup má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -61,12 +65,12 @@ speech enhancement, deep learning, denoising, Douglas--Rachford algorithm, inpai
 
 \section{Introduction}
 
-\todo{\begin{itemize}
-	\item sjednotit restoration versus reconstruction
-	\item sjednotit plug-and-play versus Plug-and-Play
-	\item srazit na 4 strany
-	\item popisek obrázku \ref{fig:final2witherrors}
-\end{itemize}}
+%\todo{\begin{itemize}
+%%	\item sjednotit restoration versus reconstruction
+%%	\item sjednotit plug-and-play versus Plug-and-Play
+%	\item srazit na 4 strany
+%	\item popisek obrázku \ref{fig:final2witherrors}
+%\end{itemize}}
 
 Audio enhancement tasks mostly face problems like missing or damaged samples, noise, or clipping.
 Considering speech signals, we %should not avoid the intelligibility problems.
@@ -76,13 +80,13 @@ Nowadays, the best way to differentiate algorithms is into two categories:
 conventional, e.g.\ using autoregressive (AR) modeling or sparsity-based optimization, and solutions using deep learning.
 The present paper focuses on the case of restoring a partially observed signal whose observed samples are further degraded by noise, i.e., the aim is to perform simultaneous inpainting and denoising of the speech signal.
 
-In conventional approaches to inpainting, the AR-based Janssen \cite{Janssen1986} and Etter~\cite{Etter1996} algorithms dominate in terms of reconstruction quality.
+In conventional approaches to inpainting, the AR-based Janssen \cite{Janssen1986} and Etter~\cite{Etter1996} algorithms dominate in terms of restoration quality.
 % These approaches are based on autoregressive signal modeling \cite{Mokry2020}.
 % Sparse signal representation has changed efficiency of restoration, mainly because increase of computing power.
 A more recent, successful class of methods is based on sparsity.
 The key idea is that after performing proper time-frequency analysis of an audio signal,
 most of the information is concentrated in a few coefficients, i.e., it is sparse.
-This can be applied as fitting the sparsest possible reconstruction either to the reliable observed samples \cite{Adler2012, Kitic2015, Zaviska2019, Mokry2019}, or to a signal not much diverging from the observation in the case of denoising \cite{Kowalski2013}.
+This can be applied as fitting the sparsest possible restoration either to the reliable observed samples \cite{Adler2012, Kitic2015, Zaviska2019, Mokry2019}, or to a signal not much diverging from the observation in the case of denoising \cite{Kowalski2013}.
 % The information hidden in frequency representation (using proper time-frequency analysis) is sparse, i.e. we do not need each spectral coefficient to repair the signal with improved subjective results.
 %The most advanced works using sparsity are \cite{Adler2012,Kitic2015,Zaviska2019, Mokry2019}.
 
@@ -95,8 +99,8 @@ While learning-based algorithms allow to adapt to real-world signals, rather tha
 Furthermore, neural networks are usually trained for a specific problem, lacking universal applicability on similar restoration tasks, in contrast to sparsity-based methods \cite{Gaultier2017, Mokry202021, Zaviska2021}.
 
 As a compromise between the conventional and learning-based methods, 
-% In \cite{Chan2016} was introduced Plug-and-Play method for image restoration.
-the Plug-and-Play method for image restoration was introduced in \cite{Venkatakrishnan2013} and subsequently studied in \cite{Chan2016},
+% In \cite{Chan2016} was introduced plug-and-play method for image restoration.
+the plug-and-play method for image restoration was introduced in \cite{Venkatakrishnan2013} and subsequently studied in \cite{Chan2016},
 where part of each iteration of an optimization algorithm is replaced by a (learned) denoiser.
 % The idea of a hybrid model,
 % combining conventional approach (convex minimization) with deep learning,
@@ -111,7 +115,7 @@ While \cite{Chan2016} focused on adapting the Alternating Direction method of Mu
 
 %% Introduction to sections.
 The paper is organized as follows. In section \ref{sec:prereq} we introduce the task from mathematical point of view and we define the restoration as a minimization task.
-Section \ref{sec:plugaandplay} presents the Plug-and-Play method and its challenges.
+Section \ref{sec:plugaandplay} presents the plug-and-play method and its challenges.
 Section \ref{sec:eval} discusses the results and further improvements of algorithm.
 Finally, Section \ref{sec:conclusion} concludes the paper.
 
@@ -163,7 +167,7 @@ The closest redefinition is to use the $ \ell_1 $-norm as follows:
 	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{subject to}\ \mathbf{D}\mathbf {c}\in \Gamma,
 \end{equation} 
 where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform), which is the adjoint of the analysis operator $ \mathbf{A} $, i.e., $ \mathbf{D} = \mathbf{A}^* $.
-Therefore the reconstructed signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
+Therefore the restored signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
 % \todo{Je správně $ \mathbf {y} \approx \mathbf{D}\mathbf {c}$, nebo $ \mathbf {y} =  \mathbf{D}\mathbf {c}$? : MŠ: myslím, že rovná sa je správne.}
 % \todo{Dal bych asi i $A$ a $\mathbf{D}$ jako matice, i když není nutno.}
 % Set $ \Gamma $ is defined as follows:
@@ -233,7 +237,7 @@ or, in the denoising case,
 %\end{equation}
 If we want to employ DRA also on the analysis-based task, a problem occurs
 that we do not know proximal operator of $ \ell_1 $-norm after analysis, which is essential for the DRA.
-However, we can resort to the so-called approximal operator without significant loss of reconstruction quality \cite{Mokry2021}.
+However, we can resort to the so-called approximal operator without significant loss of restoration quality \cite{Mokry2021}.
 % OM: Tohle jsme vlastně už řekli v předchozí větě:
 %To solve \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}, DRA can also be employed, even though it solves only an approximation of the objective \cite{Mokry2021}.
 The algorithm is summarized in Alg.\,\ref{alg:DRA}.
@@ -254,23 +258,23 @@ The algorithm is summarized in Alg.\,\ref{alg:DRA}.
 \end{algorithm}
 
 The operator $ \operatorname{proj}_{\Gamma}$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}$ is soft thresholding operator \cite{Combettes2011}.
-Projection, in this case, means replacing reconstructed samples in positions considered reliable by the observed samples.
+Projection, in this case, means replacing restored samples in positions considered reliable by the observed samples.
 The parameter $\beta$ allows to differentiate between simple inpainting \eqref{eq:analysis.gamma} and the joint problem \eqref{eq:analysis.dist}.
 The case of $\beta = 1$ corresponds to performing projection in the update, in line with \cite{Mokry2020}.
 For $\beta < 1$, it can be derived (see e.g.\,\cite[Sec.\,4 and Tab.\,1]{Combettes2011}) that the update corresponds to the proximal operator of $f(\mathbf{x}) = \frac{\alpha}{2} \Vert \mathbf{M}_{\textup{R}} \mathbf {x} - \mathbf{M}_{\textup{R}} \mathbf{s} \Vert^2_2$ with $\alpha = \frac{\beta}{1-\beta}$.
 
 
-\section{Plug-and-Play inpainting} \label{sec:plugaandplay}
+\section{Plug-and-play inpainting} \label{sec:plugaandplay}
 
-The Plug-and-Play method was proposed in \cite{Venkatakrishnan2013} and \cite{Chan2016} for image restoration.
+The plug-and-play method was proposed in \cite{Venkatakrishnan2013} and \cite{Chan2016} for image restoration.
 The main idea is to replace a proximal operator inside an iterative algorithm with an denoiser.
-% without any demands from minimizing algorithm (the origin of Plug-and-Play).
+% without any demands from minimizing algorithm (the origin of plug-and-play).
 Since this approach does not affect the data-fitting part of the minimization, it should be suitable for different resotaration tasks.
 We rewrite this task to solve our audio inpainting problem using DRA with approximal operator (analysis-based), i.e., we modify Alg.\,\ref{alg:DRA}, leading to Alg.\,\ref{alg:pnp}:
 
 
 \begin{algorithm}
-	\caption{Plug-and-Play DRA}
+	\caption{Plug-and-play DRA}
 	\begin{algorithmic}[1]\label{alg:pnp}
 		\renewcommand{\algorithmicrequire}{\textbf{Input:}}
 		\renewcommand{\algorithmicensure}{\textbf{Output:}}
@@ -304,9 +308,9 @@ To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D
 
 %\todo{SNR,PESQ,STOI}
 
-A standard metric for reconstruction quality is the signal-to-noise ratio (SNR), where the \textit{signal} represents the clean ground truth and \textit{noise} is the difference of the reconstruction and the ground truth.
+A standard metric for restoration quality is the signal-to-noise ratio (SNR), where the \textit{signal} represents the clean ground truth and \textit{noise} is the difference of the restoration and the ground truth.
 We calculate SNR either for whole signal or only on $I_\textup{M}$, i.e, on the indices of missing samples.
-The higher SNR the better the reconstruction.
+The higher SNR the better the restoration.
 
 A drawback of SNR is that it measures sample-wise difference, which does not take into account human perception of sound quality.
 Valuable metrics for speech signals are those, which measure human perception.
@@ -335,7 +339,8 @@ At the same time, we examined the effect of the trade-off parameter $\beta$ in A
 %\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
 %\todo{OM: Tady nám chybí, jaká rekonstrukční úloha vlastně byla řešena.Buď bych posunul část C o jedno výše, ať jsou všechny experimenty až za ní. Nebo, pokud se jednalo o jiný signál s jiným šumem (což bych řekl že není zásadní problém), tak by to tu mělo být zvlášť popsané.}
 Tested signals are pair of clean and noisy signal from the dataset described above with random drop-out of $40\%$ samples.
-The parameters of DRA were: $\lambda=0.1$ and $50$ iterations. \todo{Tady máme klesající nebo konstantní $\lambda$?}
+The parameters of DRA were: $\lambda_{n+1}=0.9\cdot\lambda_{n}$, with start position $\lambda_0=0.1$ and $50$ iterations. 
+%\todo{Tady máme klesající nebo konstantní $\lambda$?}
 The results are shown in Fig.\,\ref{fig:gammatest}:
 
 \begin{figure}[h]
@@ -346,7 +351,7 @@ The results are shown in Fig.\,\ref{fig:gammatest}:
 	\label{fig:gammatest}
 \end{figure}
 
-The best results were obtained with $\gamma=0.01$, which reached the best reconstruction quality, especially with increasing ratio of projected signal.
+The best results were obtained with $\gamma=0.01$, which reached the best restoration quality, especially with increasing ratio of projected signal.
 
 \subsection{Test setup}
 We have chosen randomly 10 audio files for final evaluation from the Valentini dataset \cite{ValentiniBotinhao2017} described before.
@@ -363,23 +368,24 @@ The simulation was split to three variants: two conventional ones and one includ
 The conventional ones were two versions of DRA \ref{alg:DRA} with same parameters except for the number of iterations ($50$ or $500$) and the choice of $\lambda_n$ (decreasing or constant).
 The DRA with denoiser proposed in Alg.\,\ref{alg:pnp} was tested with $50$ iterations,
 as in the shorter conventional method.
-In all the algorithms, the initial $\lambda_0$ was set to $0.1$. \todo{Zkontrolovat, kdybychom měnili.}
-For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = \lambda_0$.
+In all the algorithms, the initial $\lambda_0$ was set to $1$. %\todo{Zkontrolovat, kdybychom měnili.}
+For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = 0.1$.
 In the case of the plug-and-play version \ref{alg:pnp}, and the reference DRA \ref{alg:DRA} with 50 iterations, the parameter was set to decrease in every iteration as $\lambda_{n+1} = 0.9\cdot\lambda_n$.
 %\todo{Máme nějaké historické obrázky (nebo můžeme znova pustit nějaký starý test), který by ilustroval, proč potřebujeme tu lambdu snižovat? Nebo to tu jen řekneme, že se jinak kvalita zhoršovala s postupujícími iteracemi? V tomto místě by to totiž chtělo vysvětlit, proč to tak bylo nastaveno.}
 The motivation for decreasing $\lambda$ is clear from Fig.\,\ref{fig:lamdadesc}.
-\todo{To je pro klasický DRA nebo pro denoise? To by zde mělo být zdůrazněno, mimo jiné proto, že pokud je to klasický DRA, pak by měl časem konvergovat bez ohledu na volbu $\lambda$ ke stejnému optimu (ale v praxi při konečném počtu iterací to může hrát roli).}
+Test was made using DRA and every option should converge to same optimal point in time.
+%\todo{To je pro klasický DRA nebo pro denoise? To by zde mělo být zdůrazněno, mimo jiné proto, že pokud je to klasický DRA, pak by měl časem konvergovat bez ohledu na volbu $\lambda$ ke stejnému optimu (ale v praxi při konečném počtu iterací to může hrát roli).}
 If we fix $\lambda$, SNR decreased and converge to wrong point.
 If $\lambda$ decreases, we minimize the impact of soft threshold operator in latter iterations which appears to be effective in practice.
 
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
 	\includegraphics[width=1\linewidth]{figures/lamda_desc}
 	\caption{SNR from DRA tested for 50 iterations with static and decreasing choice of $\lambda \in \{0.1,1 \}$.
-	Tested signals are same as in experiment with $\gamma$
-	\todo{Predsa len rozmýšlam pustiť ten algoritmus odznova s $\gamma=1$}\\
-	\todo{OM: ano, zkusil bych to}\\
-	\todo{OM: jako značení bych možná používal to $\lambda_0$, pomocí toho se mi povedlo formalizovat to klesání totiž}}
+	Tested signals are same as in experiment with $\gamma$.}
+%	\todo{Predsa len rozmýšlam pustiť ten algoritmus odznova s $\gamma=1$}\\
+%	\todo{OM: ano, zkusil bych to}\\
+%	\todo{OM: jako značení bych možná používal to $\lambda_0$, pomocí toho se mi povedlo formalizovat to klesání totiž}}
 	\label{fig:lamdadesc}
 \end{figure}
 
@@ -402,27 +408,59 @@ If $\lambda$ decreases, we minimize the impact of soft threshold operator in lat
 
 %\todo{OM: Na co bych se tak zaměřil v diskuzi výsledků: Plug-and-play je méně citlivý na volbu poměru v projekci a v případě srovnání s DRA \ref{alg:DRA} se stejnými parametry (50 iterací, klesající $\lambda_n$) může dosáhnout epších výsledků.Ve srovnání s DRA s 500 iteracemi máme nižší variabilitu, ovšem globálně, při možnosti optimalizovat paramtry jako je právě míchací poměr $\beta$, jsou naše výsledky horší.}
 
-Graphs with STOI, PESQ and SNR are presented in Fig.\,\ref{fig:final2witherrors}.
-We see that Plug-and-Play is less sensitive to the fraction of projection compared to DRA,
+Graphs with STOI, PESQ and SNR are presented in Fig.\,\ref{fig:final3witherrors}.
+We see that plug-and-play is less sensitive to the fraction of projection compared to DRA,
 and in comparison with DRA (50 iterations, decreasing $\lambda_n$), it reaches better result.
 DRA with 500 iterations has higher variance of the results, but globally, it outperformed the plug-and-play method with optimal choice of the parameters such as the fraction ratio $\beta$.
 
 
 
-\begin{figure*}
-	\includegraphics[width=\linewidth]{figures/final2_with_errors}
-	\caption{Široký obrázek.}
-	\label{fig:final2witherrors}
+%\begin{figure*}[b!]
+%	\includegraphics[width=1\linewidth]{figures/final2_with_errors}
+%	\caption{Široký obrázek.}
+%	\label{fig:final2witherrors}
+%\end{figure*}
+
+\begin{figure*}[!bp]
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include first image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_stoi}  
+	\end{subfigure}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_PESQ}  
+	\end{subfigure}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_SNR}  
+	\end{subfigure}
+	\caption{Average results from 10 tested signals. Metrics are from left: STOI, PESQ, SNR.
+		\todo{$\lambda_0 = 1 $ pre DRA 50 a PnP 50, pre DRA 500 $\lambda_0=0.1$ nevedelo mi to spocitat PESQ pre vyššie $\lambda_0$ keď bolo static}
+		\todo{!!!!!!!!!!!!!!!NEVIEM TO umiestniť na stránku/skrátiť na 4 strany} }
+	\label{fig:final3witherrors}
 \end{figure*}
+
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-\todo{Záver a Abstrakt TODO ráno}
+Our reformulation of plug-and-play method for audio inpainting has shown succesful with properly chosen ratio of projection and $\lambda$.
+Next steps will be extend the test for other similar tasks (declipping, dequantization), following the pattern of root method \cite{Chan2016}, solving multiple tasks with one setup of the algorithm.
+It is suggested not to use off-the-shelf denoiser, but hand-crafted, which is learned on data related to our problem (e.g. specific noise due to dropout of a certain percentage of samples).
+In addition,
+we might be able to make the self-learned denoiser non-expansive, thus satisfying the theoretical convergence guarantees \cite{Venkatakrishnan2013,Chan2016}.
+Another improvement might be transfer learning,
+i.e. use success denoiser and continue learning from checkpoint with our dataset,
+with idea to reduce artefacts generated in inpainting task.
 
-\todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
-
-\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Současně u vlastního učení bychom mohli umět zařídit, že denoiser bude non-expansive a tudíž splníme teoretické záruky konvergence \cite{Venkatakrishnan2013,Chan2016}. Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
+%\todo{Záver a Abstrakt TODO ráno}
+%\todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
+%\todo{Dalším postupem bude testovat použití na jiné související úlohy dle principu plug-and-play (declipping, dekvantizace). Nabízí se zkusit nepoužívat off-the-shelf denoiser, ale vlastní, který je učený na datech příbuzných s naší úlohou (např.\ specifický šum vzniklý výpadkem jistého procenta vzorků). Současně u vlastního učení bychom mohli umět zařídit, že denoiser bude non-expansive a tudíž splníme teoretické záruky konvergence \cite{Venkatakrishnan2013,Chan2016}. Taktéž by se nabízel transfer learning, tj.\ vzít dobrý denoiser a jenom ho doučit, aby byl schopný redukovat artefakty vzniklé v inpaintovací úloze.}
 
 %\section*{Appendix: Derivation of the projection-like update}
 %
