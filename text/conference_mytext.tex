@@ -9,7 +9,6 @@
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{subcaption}
-\usepackage{dblfloatfix}
 \usepackage{xcolor}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
 
@@ -399,6 +398,27 @@ If $\lambda$ decreases, we minimize the impact of soft threshold operator in lat
 
 \subsection{Comparison results}
 
+\begin{figure*}[t]
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include first image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_stoi}  
+	\end{subfigure}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_PESQ}  
+	\end{subfigure}
+	\begin{subfigure}{.33\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=1.1\linewidth]{figures/lam1_SNR}  
+	\end{subfigure}
+	\caption{Average results from 10 tested signals. Metrics are from left: STOI, PESQ, SNR.
+		\todo{$\lambda_0 = 1 $ pre DRA 50 a PnP 50, pre DRA 500 $\lambda_0=0.1$ nevedelo mi to spocitat PESQ pre vyššie $\lambda_0$ keď bolo static}
+		}
+	\label{fig:final3witherrors}
+\end{figure*}
 
 
 %\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
@@ -421,27 +441,6 @@ DRA with 500 iterations has higher variance of the results, but globally, it out
 %	\label{fig:final2witherrors}
 %\end{figure*}
 
-\begin{figure*}[!bp]
-	\begin{subfigure}{.33\textwidth}
-		\centering
-		% include first image
-		\includegraphics[width=1.1\linewidth]{figures/lam1_stoi}  
-	\end{subfigure}
-	\begin{subfigure}{.33\textwidth}
-		\centering
-		% include second image
-		\includegraphics[width=1.1\linewidth]{figures/lam1_PESQ}  
-	\end{subfigure}
-	\begin{subfigure}{.33\textwidth}
-		\centering
-		% include second image
-		\includegraphics[width=1.1\linewidth]{figures/lam1_SNR}  
-	\end{subfigure}
-	\caption{Average results from 10 tested signals. Metrics are from left: STOI, PESQ, SNR.
-		\todo{$\lambda_0 = 1 $ pre DRA 50 a PnP 50, pre DRA 500 $\lambda_0=0.1$ nevedelo mi to spocitat PESQ pre vyššie $\lambda_0$ keď bolo static}
-		\todo{!!!!!!!!!!!!!!!NEVIEM TO umiestniť na stránku/skrátiť na 4 strany} }
-	\label{fig:final3witherrors}
-\end{figure*}
 
 
 
