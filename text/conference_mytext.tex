@@ -51,10 +51,11 @@
 \maketitle
 
 \begin{abstract}
-We propose plug-and-play variant of proximal algorithm Douglas--Rachford for audio inpainting.
-In our situation, also observed samples are interferenced with noise.
-We demonstrate, that plug-and-play has potential to succeed after adding a approximal information about some samples.
-In a few metrics increase quality and sensitivity to this parameter is significantly lower than in conventional method. 
+We propose plug-and-play variant of the Douglas--Rachford proximal algorithm for audio inpainting, which replaces a proximal step with a denoiser.
+In our situation, the observed samples are further degraded by noise.
+We demonstrate that the plug-and-play aproach has potential to succeed in this joint task of inpainting and denoising.
+Objective metrics show that the new method outperforms a conventional counterpart and that it is less sensitive to model hyperparameters.
+% In a few metrics increase quality and sensitivity to this parameter is significantly lower than in conventional method. 
 %\todo{Navrhujeme plug-and-play variantu proximálního algoritmu Douglas--Rachford pro audio inpainting v situaci, kdy i pozoraované vzorky jsou rušeny šumem.Demonstrujeme, že plug-and-play přístup má potenciál fungovat, přidání nějaké přibližné informace o některých vzorcích v některých metrikách zlepšuje kvalitu a citlivost na tento parametr je výrazně nižší než u konvenční metody.}
 \end{abstract}
 
@@ -93,7 +94,7 @@ Deep learning algorithms have also made their own progress in this area.
 The most efficient neural network models are autoencoders,
 recurrent neural networks (RNN) and
 Generative Adversial Networks (GAN).
-Current state-of-the-art deep learned algorithms are Speech Enhancement GAN (SEGAN) \cite{Pascual2017}, NSNet \cite{Xia2020}, FullSubNet \cite{Hao2021}.
+Current state-of-the-art deep learned algorithms are base on Speech Enhancement GAN (SEGAN) \cite{Pascual2017}, NSNet \cite{Xia2020}, FullSubNet \cite{Hao2021}.
 While learning-based algorithms allow to adapt to real-world signals, rather than to rely on hand-crafted priors like sparsity or the AR nature of signals, they need large datasets for training.
 Furthermore, neural networks are usually trained for a specific problem, lacking universal applicability on similar restoration tasks, in contrast to sparsity-based methods \cite{Gaultier2017, Mokry202021, Zaviska2021}.
 
@@ -135,13 +136,14 @@ Second, using samples in time domain is described in subsection \ref{subsec:time
 \subsection{Task formulation}
 
 We consider column vector $ \mathbf{s} \in \mathbb{R}^{N} $ as our observed damaged single-channel signal of length $ N $.
-We have set $ I $ of sample indices $ \{1,2,\dots,N\} $, which has two disjunctive subsets: $I_\textup{M} $ for missing positions and $ I_\textup{R} $ stands for reliable positions.
+We have set % $ I $
+of sample indices $ \{1,2,\dots,N\} $, which has two disjunctive subsets: $I_\textup{M} $ for missing positions and $ I_\textup{R} $ stands for reliable positions.
 Usually, samples $ \mathbf{s}(I_\textup{R}) $ are considered reliable (undamaged) and $ \mathbf{s}(I_\textup{M}) $ are samples, which we are looking for.
 It is common to rewrite it in matrix form:
 \begin{equation*}
 	\mathbf{s}_{\textup{R}} = \mathbf{M}_{\textup{R}}\mathbf{s},
 \end{equation*}
-where $\mathbf{M}_\textup{R} \in \mathbb{R} ^ { |I_\textup{R}| \times N}$, with $ |I_\textup{R}|$ denotes the number of indices in the subset $I_\textup{R}$, is the mask matrix, selecting rows from identity matrix corresponding to the indices in $I_\textup{R}$ \cite{Adler2012}.
+where $\mathbf{M}_\textup{R} \in \mathbb{R} ^ { |I_\textup{R}| \times N}$ is the mask matrix, selecting rows from identity matrix corresponding to the indices in $I_\textup{R}$ \cite{Adler2012}, with $ |I_\textup{R}|$ denoting the number of indices in the subset $I_\textup{R}$.
 In words, $\mathbf{M}_{\textup{R}}\mathbf{s}$ represents choosing the samples from $\mathbf{s}$ on positions $I_\textup{R}$.
 
 It is convenient to define the set of signals fitting the observation as
@@ -156,17 +158,17 @@ On the other hand, when the observed samples are distorted by noise, we only req
 \subsection{Synthesis-based formulation}\label{subsec:freqcoef}
 %\todo{Pro tento přístup se používá označení syntetizující (\textit{synthesis} nebo \textit{synthesis-based formulation}), pro ten v další části analyzující (\textit{analysis}).}
 
-We define the task as of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the Gabor coefficients, i.e., the number of non-zero coefficients of the time-frequency representation of the signal.
+We define the task of finding a suitable signal in (or close to) $\Gamma$ as a sparsity-based problem, minimizing $ \ell_0 $-norm of the Gabor coefficients, i.e., the number of non-zero coefficients of the time-frequency representation of the signal.
 %\todo{(možná hned používat Gabor coefficients, ať dále dává smysl termín Gabor transform)} coefficients of the signal $ \mathbf{s} $.
 However, this task leads to an NP-hard problem and is hardly solvable \cite{Mokry2020}.
 The closest redefinition is to use the $ \ell_1 $-norm as follows:
 
 \begin{equation}
 	\label{eq:synthesis.gamma}
-	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{subject to}\ \mathbf{D}\mathbf {c}\in \Gamma,
+	\mathop {\operatorname{arg \, min}}_\mathbf {c}\Vert \mathbf {c}\Vert _1 \quad \text{subject to}\quad \mathbf{D}\mathbf {c}\in \Gamma,
 \end{equation} 
 where $\mathbf{D} $ is synthesis operator (inverse discrete Gabor transform), which is the adjoint of the analysis operator $ \mathbf{A} $, i.e., $ \mathbf{D} = \mathbf{A}^* $.
-Therefore the restored signal corresponds to $ \mathbf {y} =  \mathbf{D}\mathbf {c}$.
+Therefore the restored signal corresponds to $ \mathbf {x} =  \mathbf{D}\mathbf {c}$.
 % \todo{Je správně $ \mathbf {y} \approx \mathbf{D}\mathbf {c}$, nebo $ \mathbf {y} =  \mathbf{D}\mathbf {c}$? : MŠ: myslím, že rovná sa je správne.}
 % \todo{Dal bych asi i $A$ a $\mathbf{D}$ jako matice, i když není nutno.}
 % Set $ \Gamma $ is defined as follows:
@@ -222,7 +224,7 @@ In case the transform is redundant, i.e., we have more coefficients than signal 
 The main minimazation task \eqref{eq:analysis.gamma} is reformulated as,
 \begin{equation}
 	\label{eq:analysis.gamma}
-	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 \quad \text{subject to}\ \mathbf {x}\in \Gamma,
+	\mathop {\operatorname{arg \, min}}_\mathbf {x}\Vert \mathbf{A} \mathbf {x}\Vert _1 \quad \text{subject to}\quad \mathbf {x}\in \Gamma,
 \end{equation}
 or, in the denoising case,
 \begin{equation}
@@ -241,7 +243,8 @@ However, we can resort to the so-called approximal operator without significant 
 %To solve \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}, DRA can also be employed, even though it solves only an approximation of the objective \cite{Mokry2021}.
 The algorithm is summarized in Alg.\,\ref{alg:DRA}.
 
-% Afterwards our algorithm resolves to following \cite{Mokry2020}: 
+% Afterwards our algorithm resolves to following \cite{Mokry2020}:
+\vspace{-1.5ex} 
 \begin{algorithm}
 	\caption{DRA for \eqref{eq:analysis.gamma} or \eqref{eq:analysis.dist}.}
 	\begin{algorithmic}[1]\label{alg:DRA}
@@ -255,6 +258,7 @@ The algorithm is summarized in Alg.\,\ref{alg:DRA}.
 		\RETURN $\mathbf{x}_n$ %\todo{DONE:Možná vyměnit značení $\mathbf{\widetilde{x}}$ a $\mathbf{x}$?}
 	\end{algorithmic} 
 \end{algorithm}
+\vspace{-1.5ex} 
 
 The operator $ \operatorname{proj}_{\Gamma}$ is projection onto convex set $ \Gamma $ and $\operatorname{soft}_{\gamma}$ is soft thresholding operator \cite{Combettes2011}.
 Projection, in this case, means replacing restored samples in positions considered reliable by the observed samples.
@@ -271,7 +275,7 @@ The main idea is to replace a proximal operator inside an iterative algorithm wi
 Since this approach does not affect the data-fitting part of the minimization, it should be suitable for different resotaration tasks.
 We rewrite this task to solve our audio inpainting problem using DRA with approximal operator (analysis-based), i.e., we modify Alg.\,\ref{alg:DRA}, leading to Alg.\,\ref{alg:pnp}:
 
-
+\vspace{-1.5ex} 
 \begin{algorithm}
 	\caption{Plug-and-play DRA}
 	\begin{algorithmic}[1]\label{alg:pnp}
@@ -286,6 +290,7 @@ We rewrite this task to solve our audio inpainting problem using DRA with approx
 		\RETURN $\mathbf{x}_n$ 
 	\end{algorithmic} 
 \end{algorithm}
+\vspace{-1.5ex} 
 
 %\subsection{Denoisers}
 
@@ -301,7 +306,7 @@ Our selection is the WaveUnet learned on the Valentini dateset \cite{ValentiniBo
 
 As introduced before, we use discrete Gabor transform as the analysis operator $\mathbf{A}$ with following setup parameters: Gauss window with length $w =1024 $, hop length $a = 256$ and number of frequency channels used in Fast Fourier transform %(FFT)
 $n_{\textup{FFT}} = 1024$.
-To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D} = \mathbf{A}^*$ is configured in the same way \cite{Mokry2020}.
+To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D} = \mathbf{A}^*$ is configured the same way \cite{Mokry2020}.
 
 \subsection{Metrics}\label{subsec:metrics}
 
@@ -309,10 +314,10 @@ To satisfy the Parseval tight frame condition, the synthesis operator $\mathbf{D
 
 A standard metric for restoration quality is the signal-to-noise ratio (SNR), where the \textit{signal} represents the clean ground truth and \textit{noise} is the difference of the restoration and the ground truth.
 We calculate SNR either for whole signal or only on $I_\textup{M}$, i.e, on the indices of missing samples.
-The higher SNR the better the restoration.
+The higher the SNR, the better the restoration.
 
 A drawback of SNR is that it measures sample-wise difference, which does not take into account human perception of sound quality.
-Valuable metrics for speech signals are those, which measure human perception.
+Valuable metrics for evaluating speech signals are those simulate measure human perception.
 We use two objective metrics: Perceptual Evaluation of Speech Quality (PESQ) \cite{Rix2001} and 
 Short-Time Objective Intelligibility (STOI) \cite{Taal2010}.
 PESQ has scale from $-0.5$ to $4.5$, with higher score meaning better result.
@@ -330,7 +335,7 @@ $40\%$ of samples as used in \cite{Mokry2021}.
 This means that the reliable set $I_\textup{R}$ consisted of $60\%$ of all the sample indices.
 % Then this mask is applied as dot product with noise signal.
 
-\subsection{Choice of soft threshold parameter}\label{subsec:soft_thresh}
+\subsection{Choice of the soft threshold}\label{subsec:soft_thresh}
 
 To reduce the number of variables in the comparison between the conventional and plug-and-play approach, we decided to fix the $\gamma$ parameter in DRA.
 We examined DRA with values of $\gamma\in\{0.001, 0.01,0.1\}$ for a single restoration task.
@@ -338,21 +343,24 @@ At the same time, we examined the effect of the trade-off parameter $\beta$ in A
 %\todo{OM: graf výsledků např.\ na základě PESQ s komentářem, že ostatní metriky dávají v principu stejný závěr}
 %\todo{OM: Tady nám chybí, jaká rekonstrukční úloha vlastně byla řešena.Buď bych posunul část C o jedno výše, ať jsou všechny experimenty až za ní. Nebo, pokud se jednalo o jiný signál s jiným šumem (což bych řekl že není zásadní problém), tak by to tu mělo být zvlášť popsané.}
 Tested signals are pair of clean and noisy signal from the dataset described above with random drop-out of $40\%$ samples.
-The parameters of DRA were: $\lambda_{n+1}=0.9\cdot\lambda_{n}$, with start position $\lambda_0=0.1$ and $50$ iterations. 
+The parameters of DRA were: $\lambda_{n+1}=0.9\cdot\lambda_{n}$, starting with $\lambda_0=0.1$, and $50$ iterations. 
 %\todo{Tady máme klesající nebo konstantní $\lambda$?}
 The results are shown in Fig.\,\ref{fig:gammatest}:
-
-\begin{figure}[h]
-	\includegraphics[width=1\linewidth]{figures/gamma_test}
-	\caption{PESQ metric results made to choose the best value of $\gamma$ in DRA for testing with multiple audio files (these values are shown in the legend). %\todo{Dopsal bych to přímo do obrázku, pokud to půjde, že $\gamma=\dots$.}
-	The results in terms of STOI and SNR were principally the same.
-	The label \textit{proj fraction} refers to parameter $\beta$ from Alg.\,\ref{alg:DRA}.}
-	\label{fig:gammatest}
-\end{figure}
 
 The best results were obtained with $\gamma=0.01$, which reached the best restoration quality, especially with increasing ratio of projected signal.
 
 \subsection{Test setup}
+
+
+\begin{figure}[h]
+	\includegraphics[width=1\linewidth]{figures/gamma_test}
+	\caption{PESQ metric results made to choose the best value of $\gamma$ in DRA for testing with multiple audio files (these values are shown in the legend). %\todo{Dopsal bych to přímo do obrázku, pokud to půjde, že $\gamma=\dots$.}
+		The results in terms of STOI and SNR were principally the same.
+		The label \textit{proj fraction} refers to parameter $\beta$ from Alg.\,\ref{alg:DRA}.}
+	\label{fig:gammatest}
+	\vspace{-1em}
+\end{figure}
+
 We have chosen randomly 10 audio files for final evaluation from the Valentini dataset \cite{ValentiniBotinhao2017} described before.
 % used commonly in speech enhancement challenges (the dataset is split to two subsets: clean and noisy).
 %%\todo{Jde najít nebo spočítat, jaká je zhruba úroveň šumu u našich vzorků? Spočítat by to jít mohlo, prostě SNR pro clean versus noisy-clean\dots}
@@ -362,20 +370,21 @@ We have chosen randomly 10 audio files for final evaluation from the Valentini d
 %$40\%$ of samples as used in \cite{Mokry2021}.
 %This means that the reliable set $I_\textup{R}$ consisted of $60\%$ of all the sample indices.
 %% Then this mask is applied as dot product with noise signal.
-As described before in \ref{subsec:soft_thresh}, we have chosen $\gamma = 0.01$.
-The simulation was split to three variants: two conventional ones and one including the learned denoiser.
+As justified in \ref{subsec:soft_thresh}, we have chosen $\gamma = 0.01$.
+The simulation was split to three restoration variants: two conventional ones and one including the learned denoiser.
 The conventional ones were two versions of DRA \ref{alg:DRA} with same parameters except for the number of iterations ($50$ or $500$) and the choice of $\lambda_n$ (decreasing or constant).
 The DRA with denoiser proposed in Alg.\,\ref{alg:pnp} was tested with $50$ iterations,
 as in the shorter conventional method.
 In all the algorithms, the initial $\lambda_0$ was set to $1$. %\todo{Zkontrolovat, kdybychom měnili.}
-For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = 0.1$.
+For the case of DRA \ref{alg:DRA} with 500 iterations, we kept constant $\lambda_n = 0.1$, which provided better results compared to the choice of $\lambda_n = 1$.
 In the case of the plug-and-play version \ref{alg:pnp}, and the reference DRA \ref{alg:DRA} with 50 iterations, the parameter was set to decrease in every iteration as $\lambda_{n+1} = 0.9\cdot\lambda_n$.
 %\todo{Máme nějaké historické obrázky (nebo můžeme znova pustit nějaký starý test), který by ilustroval, proč potřebujeme tu lambdu snižovat? Nebo to tu jen řekneme, že se jinak kvalita zhoršovala s postupujícími iteracemi? V tomto místě by to totiž chtělo vysvětlit, proč to tak bylo nastaveno.}
 The motivation for decreasing $\lambda$ is clear from Fig.\,\ref{fig:lamdadesc}.
-Test was made using DRA and every option should converge to same optimal point in time.
+The test was performed using DRA and every option should eventually converge to the same optimal point in time \cite{Combettes2011}.
 %\todo{To je pro klasický DRA nebo pro denoise? To by zde mělo být zdůrazněno, mimo jiné proto, že pokud je to klasický DRA, pak by měl časem konvergovat bez ohledu na volbu $\lambda$ ke stejnému optimu (ale v praxi při konečném počtu iterací to může hrát roli).}
-If we fix $\lambda$, SNR decreased and converge to wrong point.
-If $\lambda$ decreases, we minimize the impact of soft threshold operator in latter iterations which appears to be effective in practice.
+However, the choice has an impact in practice, either in particular choice of the argument of the minima, or due to numerical reasons and finite number of iterations.
+% If we fix $\lambda$, SNR decreased and converge to wrong point.
+If $\lambda$ decreases, we minimize the impact of soft threshold operator in latter iterations which appears to be effective in our case.
 
 \begin{figure}[!h]
 	\centering
@@ -396,7 +405,7 @@ If $\lambda$ decreases, we minimize the impact of soft threshold operator in lat
 
 
 
-\subsection{Comparison results}
+
 
 \begin{figure*}[t]
 	\begin{subfigure}{.33\textwidth}
@@ -414,11 +423,13 @@ If $\lambda$ decreases, we minimize the impact of soft threshold operator in lat
 		% include second image
 		\includegraphics[width=1.1\linewidth]{figures/lam1_SNR}  
 	\end{subfigure}
-	\caption{Average results from 10 tested signals. Metrics are from left: STOI, PESQ, SNR.
-		\todo{$\lambda_0 = 1 $ pre DRA 50 a PnP 50, pre DRA 500 $\lambda_0=0.1$ nevedelo mi to spocitat PESQ pre vyššie $\lambda_0$ keď bolo static}
+	\caption{Average results from 10 tested signals. Metrics are from left to right: STOI, PESQ, SNR.
+		%\todo{$\lambda_0 = 1 $ pre DRA 50 a PnP 50, pre DRA 500 $\lambda_0=0.1$ nevedelo mi to spocitat PESQ pre vyššie $\lambda_0$ keď bolo static}
 		}
 	\label{fig:final3witherrors}
 \end{figure*}
+
+\subsection{Comparison results}
 
 
 %\todo{OM: Zde použít víc metrik, přinejmenším STOI, PESQ a SNR (možná vynechat SNR max a SNR gap). Dát 3 grafy vedle sebe pomocí figure*.}
@@ -431,7 +442,7 @@ If $\lambda$ decreases, we minimize the impact of soft threshold operator in lat
 Graphs with STOI, PESQ and SNR are presented in Fig.\,\ref{fig:final3witherrors}.
 We see that plug-and-play is less sensitive to the fraction of projection compared to DRA,
 and in comparison with DRA (50 iterations, decreasing $\lambda_n$), it reaches better result.
-DRA with 500 iterations has higher variance of the results, but globally, it outperformed the plug-and-play method with optimal choice of the parameters such as the fraction ratio $\beta$.
+DRA with 500 iterations has higher variance of the results, but globally, it outperformed the plug-and-play method with optimal choice of the parameters such as the ratio $\beta$.
 
 
 
@@ -448,14 +459,14 @@ DRA with 500 iterations has higher variance of the results, but globally, it out
 \section{Conclusion}
 \label{sec:conclusion}
 
-Our reformulation of plug-and-play method for audio inpainting has shown succesful with properly chosen ratio of projection and $\lambda$.
-Next steps will be extend the test for other similar tasks (declipping, dequantization), following the pattern of root method \cite{Chan2016}, solving multiple tasks with one setup of the algorithm.
-It is suggested not to use off-the-shelf denoiser, but hand-crafted, which is learned on data related to our problem (e.g. specific noise due to dropout of a certain percentage of samples).
+Our reformulation of plug-and-play method for audio inpainting with noisy data was demonstrated to be successful with properly chosen ratio of projection and $\lambda$.
+Next steps could be to extend the test for other similar tasks (declipping, dequantization), following the pattern of root method \cite{Chan2016}, solving multiple tasks with one setup of the algorithm.
+We also suggest suggested not to use off-the-shelf denoiser, but learn own model on data related to our problem (e.g.\ specific noise due to dropout of a certain percentage of samples).
 In addition,
 we might be able to make the self-learned denoiser non-expansive, thus satisfying the theoretical convergence guarantees \cite{Venkatakrishnan2013,Chan2016}.
-Another improvement might be transfer learning,
-i.e. use success denoiser and continue learning from checkpoint with our dataset,
-with idea to reduce artefacts generated in inpainting task.
+A compromise might be to use transfer learning,
+i.e., to take a successful denoiser and continue learning from a checkpoint with our dataset,
+with idea to reduce artifacts generated in the inpainting task.
 
 %\todo{Záver a Abstrakt TODO ráno}
 %\todo{Naše metoda je super (až na to, že nefunguje, ale to nebudeme říkat).}
